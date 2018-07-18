@@ -1,4 +1,4 @@
-<p align="center"><img src="app/src/main/ic_launcher-web.png" alt="Carousel Gif Viewer" height="200px"></p>
+<p align="center"><img src="app/src/main/ic_launcher-web.png" alt="Carousel Gif Viewer" height="384px"></p>
 
 Carousel Gif Viewer
 ===================
@@ -15,8 +15,7 @@ Displaying a list of GIFs is not something easy, it is:
 On the other hand, displaying them as MP4 is not something trivial. ExoPlayer usually only allows to play [around 2 to 4 videos simultaneously](https://github.com/google/ExoPlayer/issues/273).
 Besides this, RecyclerView really wasn't made to work well with players, with some [recent tries](https://github.com/eneim/toro) successfully making around the limitations.
 
-![GIF](assets/showcase.gif?raw=true)
-<p align="center"><img src="assets/showcase.gif?raw=true" alt="Carousel Gif Viewer" height="200px"></p>
+<p align="center"><img src="assets/showcase.gif?raw=true" alt="Carousel Gif Viewer"></p>
 
 ##### How it works:
 
