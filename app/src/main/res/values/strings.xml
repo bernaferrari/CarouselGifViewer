@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Carousel GIF Viewer</string>
+
+    <string name="share">Share</string>
+
+    <string name="copy">Copy</string>
+    <string name="more_options">More options</string>
+    <string name="clear_search_query">Clear search</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="view_source">View source</string>
+
+    <string name="search_gifs_hint_loaded">Search %1d gifs…</string>
+    <string name="search_gifs_hint">Loading…</string>
+
+    <string name="gif_error">Error. Check the connection or select another.</string>
+    <string name="dot">•</string>
+
+    <string name="author">Author</string>
+    <string name="version">Version</string>
+    <string name="licenses">Licenses</string>
+    <string name="rate">Rate the app</string>
+
+    <string name="email">Send an email</string>
+    <string name="help">Help</string>
+    <string name="email_subject">Change Detection feedback</string>
+    <string name="github">Fork on GitHub</string>
+    <string name="bugs">Bugs? Questions? Feedback?</string>
+
+</resources>

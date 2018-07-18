@@ -1,0 +1,46 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <style name="ToolbarColoredBackArrow" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:textColorSecondary">@color/colorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.DialogTitle" parent="TextAppearance.AppCompat.Widget.ActionBar.Title" />
+
+    <style name="ThemeOverlay.SdkSearch.Dark.ActionBar" parent="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorAccent">#fff</item>
+    </style>
+
+    <style name="Plaid.InlineActionButton" parent="ClickableImageView">
+        <item name="android:gravity">center_horizontal</item>
+        <!--<item name="android:fontFamily">@font/ibm_sans_medium</item>-->
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/dark_icon</item>
+        <item name="android:textAllCaps">true</item>
+        <!--<item name="android:textAppearance">@style/TextAppearanceCommentAuthor</item>-->
+        <item name="android:drawablePadding">@dimen/spacing_micro</item>
+        <!--<item name="android:foreground">?android:selectableItemBackgroundBorderless</item>-->
+    </style>
+
+    <style name="ClickableImageView">
+        <item name="android:clickable">true</item>
+        <item name="android:background">?android:selectableItemBackground</item>
+    </style>
+
+    <style name="About" parent="Theme.Mal.Light">
+        <item name="colorPrimary">@color/md_white_1000</item>
+
+        <item name="mal_card_background">@color/CARD</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="mal_color_primary">@color/FontStrong</item>
+        <item name="mal_color_secondary">@color/FontWeak</item>
+    </style>
+
+</resources>

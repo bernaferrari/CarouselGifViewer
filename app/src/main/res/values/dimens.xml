@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="horizontal_spacing">12sp</dimen>
+
+    <!--PLAID-->
+
+    <!-- standard metrics -->
+    <dimen name="spacing_normal">8dp</dimen>
+    <dimen name="spacing_micro">4dp</dimen>
+    <dimen name="spacing_large">32dp</dimen>
+    <dimen name="spacing_xlarge">48dp</dimen>
+    <dimen name="spacing_huge">64dp</dimen>
+    <dimen name="padding_normal">16dp</dimen>
+
+    <!-- dribbble shot -->
+    <dimen name="avatar_bounds">48dp</dimen>
+    <dimen name="avatar_margin">12dp</dimen> <!-- padding_normal - avatar_padding -->
+
+    <!-- drawer -->
+    <dimen name="drawer_width">@dimen/match_parent</dimen>
+    <dimen name="z_drawer">16dp</dimen>
+
+    <!-- per https://developer.android.com/reference/android/view/ViewGroup.LayoutParams.html#MATCH_PARENT -->
+    <item name="match_parent" format="integer" type="dimen">-1</item>
+
+</resources>
