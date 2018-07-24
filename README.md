@@ -5,7 +5,7 @@ Carousel Gif Viewer
 
 This app **efficiently** displays a list of GIFs in a carousel.
 
-#### Motivation:
+### Motivation:
 Displaying a list of GIFs is not something easy, it is:
  - Heavy;
  - Has a high chance of OOM error on low-end devices;
@@ -17,16 +17,11 @@ Besides this, RecyclerView really wasn't made to work well with players, with so
 
 <p align="center"><img src="assets/showcase.gif?raw=true" alt="Carousel Gif Viewer"></p>
 
-#### How it works:
+### How it works:
 
 After a lot of frustration, I came to the idea of this app (which is just an activity inside [my other app](https://play.google.com/store/apps/details?id=com.biblialibras.android])). There is a [DiscreteScrollView](https://github.com/yarolegovich/DiscreteScrollView) (which is a RecyclerView with a custom layoutManager) displaying the GIF preview (a jpg thumbnail), and a fixed [ExoMedia player](https://github.com/brianwernick/ExoMedia) at the center of the screen playing a looping mp4 file.
 The trick is: the player doesn't go anywhere. When user scrolls, the player is hidden. As soon as the RecyclerView stops scrolling, the player is shown. Since it has the same size and corners as the images, everything works seamlessly.
 It also helps that Gfycat, which is used in this sample, generates the image thumbnail based on the first frame, so the video always starts playing from the same place as the picture is.
-
-Side note: I tested the most popular GIF hosting sites, and Gfycat has been the best by far!
-- Tenor won't allow editing, removing, renaming or changing tags after a GIF is uploaded (unless you contact support).
-- Giphy is a mess, uploaded gifs won't show on search unless you are verified (and it is not easy to become verified); main channel page is a mess.
-- Gfycat allows to create albums and sort GIFs; support is great and fast; API just works; view count is great; GIFs with random names instead of random ids is also great.
 
 Current use case for this app is as a Brazilian Sign Language Dictionary on "*Bíblia em Libras*" (Bible in Brazilian Sign Language) app, under "*Dicionário*".
 [Download it here.](https://play.google.com/store/apps/details?id=com.biblialibras.android])
@@ -36,6 +31,12 @@ Current use case for this app is as a Brazilian Sign Language Dictionary on "*B�
 | Main Screen | Drawer |
 |:-:|:-:|
 | ![First](assets/main_screen.png?raw=true) | ![Sec](assets/drawer.png?raw=true) |
+
+### Side note
+I tested the most popular GIF hosting sites, and Gfycat has been the best by far!
+- Tenor won't allow editing, removing, renaming or changing tags after a GIF is uploaded (unless you contact support).
+- Giphy is a mess, uploaded gifs won't show on search unless you are verified (and it is not easy to become verified); main channel page is a mess.
+- Gfycat allows to create albums and sort GIFs; support is great and fast; API just works; view count is great; GIFs with random names instead of random ids is also great.
 
 ### Reporting Issues
 
