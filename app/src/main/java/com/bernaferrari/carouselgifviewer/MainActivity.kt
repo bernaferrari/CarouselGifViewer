@@ -41,6 +41,10 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.gif_activity.*
 import java.util.concurrent.TimeUnit
 
+/**
+ * The MainActivity which will put together everything on this sample to display the
+ * Carousel Gif Viewer.
+ */
 class MainActivity : AppCompatActivity(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
@@ -206,7 +210,7 @@ class MainActivity : AppCompatActivity(),
                 Logger.d("video_view.setOnErrorListener")
 
                 Snackbar.make(
-                    this@MainActivity.drawer,
+                    drawer,
                     context.getString(R.string.gif_error),
                     Snackbar.LENGTH_LONG
                 ).show()

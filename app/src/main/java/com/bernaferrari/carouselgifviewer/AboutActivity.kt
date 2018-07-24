@@ -14,7 +14,6 @@ import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 
-
 /**
  * An activity which will display the about information for the app.
  */
@@ -131,7 +130,7 @@ class AboutActivity : MaterialAboutActivity() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2@gmail.com",
+                        emailAddress,
                         getString(R.string.email_subject)
                     )
                 )
@@ -154,7 +153,7 @@ class AboutActivity : MaterialAboutActivity() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2@gmail.com",
+                        emailAddress,
                         getString(R.string.email_subject)
                     )
                 )

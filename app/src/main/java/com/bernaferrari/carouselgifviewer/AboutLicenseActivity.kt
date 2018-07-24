@@ -12,6 +12,9 @@ import com.danielstone.materialaboutlibrary.util.OpenSourceLicense
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 
+/**
+ * This will display all the libraries currently in use.
+ */
 class AboutLicenseActivity : MaterialAboutActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

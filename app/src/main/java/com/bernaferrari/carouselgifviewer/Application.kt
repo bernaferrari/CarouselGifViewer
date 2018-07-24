@@ -14,6 +14,9 @@ import com.orhanobut.logger.Logger
 import okhttp3.OkHttpClient
 import java.io.File
 
+/**
+ * Application class, responsible for initiating Logger and ExoMedia's cache
+ */
 class Application : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
@@ -55,7 +58,8 @@ class Application : MultiDexApplication() {
                     )
                 }
 
-                return instance as CacheDataSourceFactory
+                return instance
+                        ?: throw NullPointerException("Expression 'instance' must not be null")
             }
         })
     }
