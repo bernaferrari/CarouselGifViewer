@@ -3,6 +3,8 @@
 Carousel Gif Viewer
 ===================
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/0b20b4208805461eac30075f81ae0ca9)](https://www.codacy.com/app/bernaferrari/CarouselGifViewer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=bernaferrari/CarouselGifViewer&amp;utm_campaign=Badge_Grade)
+
 This app **efficiently** displays a list of GIFs in a carousel.
 
 ### Motivation:
