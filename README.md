@@ -1,4 +1,4 @@
-<p align="center"><img src="app/src/main/ic_launcher-web.png" alt="Carousel Gif Viewer" height="256px"></p>
+<p align="center"><img src="assets/github_icon.png" alt="Carousel Gif Viewer" height="200px"></p>
 
 Carousel Gif Viewer
 ===================
