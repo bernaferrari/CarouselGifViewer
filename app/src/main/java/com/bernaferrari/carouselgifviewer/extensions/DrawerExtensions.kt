@@ -3,10 +3,10 @@ package com.bernaferrari.carouselgifviewer.extensions
 import android.support.v4.widget.DrawerLayout
 import android.view.View
 
-fun DrawerLayout.onChanged(action: (newState: Int) -> Unit): DrawerLayout.DrawerListener =
+internal fun DrawerLayout.onChanged(action: (newState: Int) -> Unit): DrawerLayout.DrawerListener =
     addDrawerListener(onChanged = action)
 
-fun DrawerLayout.addDrawerListener(
+internal fun DrawerLayout.addDrawerListener(
     onOpened: ((drawerView: View) -> Unit)? = null,
     onClosed: ((drawerView: View) -> Unit)? = null,
     onSlide: ((drawerView: View, slideOffset: Float) -> Unit)? = null,

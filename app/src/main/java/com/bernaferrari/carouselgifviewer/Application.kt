@@ -55,7 +55,7 @@ class Application : MultiDexApplication() {
                     )
                 }
 
-                return instance!!
+                return instance as CacheDataSourceFactory
             }
         })
     }

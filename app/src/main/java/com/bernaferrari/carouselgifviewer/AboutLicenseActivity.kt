@@ -20,7 +20,7 @@ class AboutLicenseActivity : MaterialAboutActivity() {
     }
 
     override fun getMaterialAboutList(context: Context): MaterialAboutList {
-        return createMaterialAboutLicenseList(context, R.color.md_grey_800)
+        return createMaterialAboutLicenseList()
     }
 
     override fun getActivityTitle(): CharSequence? {
@@ -41,15 +41,13 @@ class AboutLicenseActivity : MaterialAboutActivity() {
         libraryTitle: String,
         year: String,
         name: String,
-        license: OpenSourceLicense,
-        context: Context,
-        colorIcon: Int
+        license: OpenSourceLicense
     ): MaterialAboutCard {
         return ConvenienceBuilder.createLicenseCard(
-            context,
-            IconicsDrawable(context)
+            this,
+            IconicsDrawable(this)
                 .icon(CommunityMaterial.Icon.cmd_book)
-                .color(ContextCompat.getColor(context, colorIcon))
+                .color(ContextCompat.getColor(this, R.color.md_grey_800))
                 .sizeDp(18),
             libraryTitle,
             year,
@@ -58,111 +56,90 @@ class AboutLicenseActivity : MaterialAboutActivity() {
         )
     }
 
-    private fun createMaterialAboutLicenseList(c: Context, colorIcon: Int): MaterialAboutList {
+    private fun createMaterialAboutLicenseList(): MaterialAboutList {
 
         val materialAboutLIbraryLicenseCard = createLicenseCard(
             "material-about-library",
             "2016",
             "Daniel Stone",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
+
         val androidIconicsLicenseCard = createLicenseCard(
             "Android Iconics",
             "2017",
             "Mike Penz",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val logger = createLicenseCard(
             "Logger",
             "2017",
             "Orhan Obut",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
-        val ExoMedia = createLicenseCard(
+        val exoMedia = createLicenseCard(
             "ExoMedia",
             "2015-2017",
             "Brian Wernick",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val glide =
-            createLicenseCard("Glide", "2017", "Google Inc.", OpenSourceLicense.MIT, c, colorIcon)
+            createLicenseCard("Glide", "2017", "Google Inc.", OpenSourceLicense.MIT)
 
         val aosp = createLicenseCard(
             "The Android Open Source Project",
             "2018",
             "Google Inc.",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val rxjava = createLicenseCard(
             "RxJava: Reactive Extensions for the JVM",
             "2016-present",
             "RxJava Contributors",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val rxandroid = createLicenseCard(
             "RxAndroid: Reactive Extensions for Android",
             "2015",
             "The RxAndroid authors",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val rxrelay = createLicenseCard(
             "RxRelay",
             "2015",
             "Jake Wharton",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
-        val groupie = createLicenseCard("Groupie", "2016", "", OpenSourceLicense.MIT, c, colorIcon)
+        val groupie = createLicenseCard("Groupie", "2016", "", OpenSourceLicense.MIT)
 
         val discrete = createLicenseCard(
             "DiscreteScrollView",
             "2017",
             "Yaroslav Shevchuk",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
-        val okhttp = createLicenseCard("OkHttp", "", "", OpenSourceLicense.APACHE_2, c, colorIcon)
+        val okhttp = createLicenseCard("OkHttp", "", "", OpenSourceLicense.APACHE_2)
 
         val kotlin = createLicenseCard(
             "Kotlin",
             "2010-2017",
             "JetBrains",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         val materialprogressbar = createLicenseCard(
             "MaterialProgressBar",
             "2015",
             "Hai Zhang",
-            OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            OpenSourceLicense.APACHE_2
         )
 
         return MaterialAboutList(
@@ -175,7 +152,7 @@ class AboutLicenseActivity : MaterialAboutActivity() {
             groupie,
             discrete,
             materialAboutLIbraryLicenseCard,
-            ExoMedia,
+            exoMedia,
             glide,
             logger,
             kotlin,

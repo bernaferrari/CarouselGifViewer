@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
-class ImagesAdapter(
+internal class ImagesAdapter(
     private val results: List<DictionaryItem>,
     private val activity: Activity,
     private val itemHeight: Int,
@@ -15,14 +15,14 @@ class ImagesAdapter(
 ) : RecyclerView.Adapter<ImagesViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImagesViewHolder {
-        val view: CardView =
-            activity.layoutInflater.inflate(R.layout.gif_item_main_exo, parent, false) as CardView
+        val view =
+            activity.layoutInflater.inflate(R.layout.gif_item_main_exo, parent, false)
         val params = ViewGroup.LayoutParams(
             itemHeight,
             itemHeight
         )
         view.layoutParams = params
-        view.radius = cornerRadius
+        (view as? CardView)?.radius = cornerRadius
         return ImagesViewHolder(view)
     }
 

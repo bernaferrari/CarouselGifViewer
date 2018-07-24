@@ -106,16 +106,23 @@ class MainActivity : AppCompatActivity(),
             startActivity(Intent(this, AboutActivity::class.java))
         }
 
-        val windowDimensions = Point()
-        windowManager.defaultDisplay.getSize(windowDimensions)
-        val itemHeight = Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.7f)
+        setUpShareContent()
+        setUpVideoView()
+        setUpRecyclerView()
 
-        FrameLayout.LayoutParams(itemHeight, itemHeight).let { params ->
-            params.gravity = Gravity.CENTER
-            card.layoutParams = params
-            card.radius = cardCornerRadius
-        }
+        drawer.setBackgroundColor(ContextCompat.getColor(this, R.color.md_blue_500))
 
+        val selector = MutableLiveData<String>()
+        setDrawer(selector)
+        selector.observe(this, Observer { liveId ->
+            Logger.d("smooth scroll to.. " + items.indexOfFirst { it.gifId == liveId })
+            val nextPosition = items.indexOfFirst { it.gifId == liveId }
+            drawer.closeDrawer(GravityCompat.END)
+            item_picker.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
+        })
+    }
+
+    private fun setUpShareContent() {
         share_content.setOnClickListener {
             if (items.size > previousAdapterPosition) {
                 ShareItemHandler(
@@ -134,7 +141,54 @@ class MainActivity : AppCompatActivity(),
             }
             true
         }
+    }
 
+    private fun setUpRecyclerView() {
+        val windowDimensions = Point()
+        windowManager.defaultDisplay.getSize(windowDimensions)
+        val itemHeight = Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.7f)
+
+        FrameLayout.LayoutParams(itemHeight, itemHeight).let { params ->
+            params.gravity = Gravity.CENTER
+            card.layoutParams = params
+            card.radius = cardCornerRadius
+        }
+
+        discreteScrollAdapter = ImagesAdapter(
+            results = items,
+            activity = this,
+            itemHeight = itemHeight,
+            cornerRadius = cardCornerRadius
+        )
+
+        item_picker.addOnItemChangedListener(this)
+
+        item_picker.apply {
+            this.adapter = discreteScrollAdapter
+
+            this.setItemTransitionTimeMillis(150)
+
+            this.setItemTransformer(
+                ScaleTransformer.Builder()
+                    .setMinScale(0.8f)
+                    .build()
+            )
+
+            this.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                        isVideoShown = true
+                    } else {
+                        isVideoShown = false
+                        card.isVisible = false
+                    }
+                    super.onScrollStateChanged(recyclerView, newState)
+                }
+            })
+        }
+    }
+
+    private fun setUpVideoView() {
         video_view.apply {
             this.setOnPreparedListener {
                 Logger.d("video_view.setOnPreparedListener")
@@ -167,51 +221,6 @@ class MainActivity : AppCompatActivity(),
                 this.restart()
             }
         }
-
-        discreteScrollAdapter = ImagesAdapter(
-            results = items,
-            activity = this,
-            itemHeight = itemHeight,
-            cornerRadius = cardCornerRadius
-        )
-
-        item_picker.apply {
-            this.adapter = discreteScrollAdapter
-
-            this.setItemTransitionTimeMillis(150)
-//          this.setSlideOnFling(true)
-//          this.setSlideOnFlingThreshold(8000)
-            this.setItemTransformer(
-                ScaleTransformer.Builder()
-                    .setMinScale(0.8f)
-                    .build()
-            )
-
-            this.addOnItemChangedListener(this@MainActivity)
-
-            this.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        isVideoShown = true
-                    } else {
-                        isVideoShown = false
-                        card.isVisible = false
-                    }
-                    super.onScrollStateChanged(recyclerView, newState)
-                }
-            })
-        }
-
-        drawer.setBackgroundColor(ContextCompat.getColor(this, R.color.md_blue_500))
-
-        val selector = MutableLiveData<String>()
-        setDrawer(selector)
-        selector.observe(this, Observer { liveId ->
-            Logger.d("smooth scroll to.. " + items.indexOfFirst { it.gifId == liveId })
-            val nextPosition = items.indexOfFirst { it.gifId == liveId }
-            drawer.closeDrawer(GravityCompat.END)
-            item_picker.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
-        })
     }
 
     private fun setDrawer(selector: MutableLiveData<String>) {
@@ -240,11 +249,11 @@ class MainActivity : AppCompatActivity(),
             .subscribeOn(Schedulers.newThread())
             .map {
                 if (it.isBlank()) {
-                    return@map items
-                }
-
-                return@map items.filter { item ->
-                    item.gifTitle.normalizeString().contains(it.normalizeString())
+                    items
+                } else {
+                    items.filter { item ->
+                        item.gifTitle.normalizeString().contains(it.normalizeString())
+                    }
                 }
             }
             .observeOn(AndroidSchedulers.mainThread())
@@ -280,7 +289,7 @@ class MainActivity : AppCompatActivity(),
         val inputMethodManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             this.systemService<InputMethodManager>()
         } else {
-            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return
         }
 
         // hide keyboard when user scrolls

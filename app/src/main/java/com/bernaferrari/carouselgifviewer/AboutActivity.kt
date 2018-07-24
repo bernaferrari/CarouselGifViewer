@@ -14,6 +14,10 @@ import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 
+
+/**
+ * An activity which will display the about information for the app.
+ */
 class AboutActivity : MaterialAboutActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,10 +116,12 @@ class AboutActivity : MaterialAboutActivity() {
                 .build()
         )
 
+        val emailAddress = "bernaferrari2@gmail.com"
+
         author.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.email)
-                .subText("bernaferrari2@gmail.com")
+                .subText(emailAddress)
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_email)
@@ -138,7 +144,7 @@ class AboutActivity : MaterialAboutActivity() {
         otherCardBuilder.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.bugs)
-                .subText("bernaferrari2@gmail.com")
+                .subText(emailAddress)
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_bug)

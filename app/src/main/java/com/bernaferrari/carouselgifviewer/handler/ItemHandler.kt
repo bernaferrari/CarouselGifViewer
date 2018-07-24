@@ -1,5 +1,5 @@
 package com.bernaferrari.carouselgifviewer.handler
 
-interface ItemHandler {
+internal interface ItemHandler {
     operator fun invoke()
 }
