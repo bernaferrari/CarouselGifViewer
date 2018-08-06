@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity(),
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
         // starts the timer to show a loading bar in case the video is not loaded fast
         showProgressIfNecessary()
-        video_view?.setVideoURI("https://thumbs.gfycat.com/${items[adapterPosition].gifId}-mini.mp4".toUri())
+        video_view?.setVideoURI("https://thumbs.gfycat.com/${items[adapterPosition].gifId}-mobile.mp4".toUri())
         titlecontent.text = items[adapterPosition].gifTitle
 
         // deselects currently selected item
