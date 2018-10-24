@@ -1,7 +1,7 @@
 package com.bernaferrari.carouselgifviewer.handler
 
 import android.app.Activity
-import android.support.v4.app.ShareCompat.IntentBuilder
+import androidx.core.app.ShareCompat.IntentBuilder
 import com.bernaferrari.carouselgifviewer.R
 
 internal class ShareItemHandler(

@@ -1,19 +1,10 @@
 package com.bernaferrari.carouselgifviewer
 
-import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Observer
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.GravityCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.TooltipCompat
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -21,16 +12,26 @@ import android.view.ViewConfiguration
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
-import androidx.core.content.systemService
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.TooltipCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bernaferrari.carouselgifviewer.extensions.*
 import com.bernaferrari.carouselgifviewer.handler.OpenBrowserItemHandler
 import com.bernaferrari.carouselgifviewer.handler.ShareItemHandler
+import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
+import com.xwray.groupie.ViewHolder
 import com.yarolegovich.discretescrollview.DiscreteScrollView
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
 import io.reactivex.Completable
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
     private lateinit var discreteScrollAdapter: RecyclerView.Adapter<*>
-    private val sideListAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+    private val sideListAdapter = GroupAdapter<ViewHolder>()
     private var isVideoShown = true
     private var previousAdapterPosition = 0
 
@@ -161,7 +162,7 @@ class MainActivity : AppCompatActivity(),
         discreteScrollAdapter = ImagesAdapter(
             results = items,
             activity = this,
-            itemHeight = itemHeight,
+            itemSize = itemHeight,
             cornerRadius = cardCornerRadius
         )
 
@@ -291,10 +292,10 @@ class MainActivity : AppCompatActivity(),
     private fun setupHideKeyboardWhenNecessary() {
 
         val inputMethodManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.systemService<InputMethodManager>()
+            this.getSystemService<InputMethodManager>()
         } else {
             getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return
-        }
+        } ?: return
 
         // hide keyboard when user scrolls
         val touchSlop = ViewConfiguration.get(this).scaledTouchSlop

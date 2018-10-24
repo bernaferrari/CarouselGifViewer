@@ -2,8 +2,8 @@ package com.bernaferrari.carouselgifviewer
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
 import android.view.MenuItem
+import androidx.core.content.ContextCompat
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
 import com.danielstone.materialaboutlibrary.MaterialAboutActivity
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard

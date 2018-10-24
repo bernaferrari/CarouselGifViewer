@@ -1,6 +1,6 @@
 package com.bernaferrari.carouselgifviewer.extensions
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import com.orhanobut.logger.Logger
 
 internal inline fun RecyclerView.onScroll(crossinline body: (dx: Int, dy: Int) -> Unit) {

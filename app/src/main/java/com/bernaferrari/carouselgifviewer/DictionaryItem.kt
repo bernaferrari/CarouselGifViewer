@@ -1,7 +1,7 @@
 package com.bernaferrari.carouselgifviewer
 
-import android.support.v4.content.ContextCompat
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.xwray.groupie.kotlinandroidextensions.Item

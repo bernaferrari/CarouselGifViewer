@@ -1,19 +1,19 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="ToolbarColoredBackArrow" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="ToolbarColoredBackArrow" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="android:textColorSecondary">@color/colorPrimary</item>
     </style>
 
-    <style name="TextAppearance.DialogTitle" parent="TextAppearance.AppCompat.Widget.ActionBar.Title" />
+    <style name="TextAppearance.DialogTitle" parent="TextAppearance.MaterialComponents.Headline6" />
 
-    <style name="ThemeOverlay.SdkSearch.Dark.ActionBar" parent="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="ThemeOverlay.SdkSearch.Dark.ActionBar" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
         <item name="colorAccent">#fff</item>
     </style>
 
