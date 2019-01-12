@@ -26,4 +26,14 @@
     <string name="github">Fork on GitHub</string>
     <string name="bugs">Bugs? Questions? Feedback?</string>
 
+    <string name="about_title">CarouselGifViewer v%1$s</string>
+    <string name="about_body"><![CDATA[
+        Designed &amp; developed by <b>Bernardo Ferrari</b>.<br/>
+        <a href=\'https://github.com/bernaferrari\'>GitHub</a>&nbsp;&nbsp;
+        <a href=\'https://www.reddit.com/user/bernaferrari\'>Reddit</a>&nbsp;&nbsp;
+        <a href=\'https://www.linkedin.com/in/bernaferrari\'>LinkedIn</a><br/><br/>
+        This project is <a href=\'https://github.com/bernaferrari/CarouselGifViewer\'>open source</a>, and is
+        licensed under Apache 2.0.</a>.
+  ]]></string>
+
 </resources>

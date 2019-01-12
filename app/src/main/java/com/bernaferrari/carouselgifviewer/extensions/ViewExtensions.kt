@@ -1,4 +1,4 @@
-package com.bernaferrari.carouselgifviewer.extensions
+package com.bernaferrari.sdkmonitor.extensions
 
 import android.view.KeyEvent
 import android.view.View

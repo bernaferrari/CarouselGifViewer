@@ -203,7 +203,7 @@
                 app:srcCompat="@drawable/ic_close_white_24dp" />
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.airbnb.epoxy.EpoxyRecyclerView
             android:id="@+id/filters"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -211,8 +211,7 @@
             android:paddingTop="@dimen/spacing_normal"
             android:paddingBottom="@dimen/spacing_normal"
             android:scrollbarStyle="outsideOverlay"
-            android:scrollbars="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            android:scrollbars="vertical" />
 
     </LinearLayout>
 

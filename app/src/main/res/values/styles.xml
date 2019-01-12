@@ -4,11 +4,8 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorAccent">@color/colorAccent</item>
-    </style>
-
-    <style name="ToolbarColoredBackArrow" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <item name="android:textColorSecondary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/md_grey_500</item>
+        <item name="colorPrimaryDark">@color/md_grey_400</item>
     </style>
 
     <style name="TextAppearance.DialogTitle" parent="TextAppearance.MaterialComponents.Headline6" />
@@ -30,17 +27,7 @@
 
     <style name="ClickableImageView">
         <item name="android:clickable">true</item>
-        <item name="android:background">?android:selectableItemBackground</item>
-    </style>
-
-    <style name="About" parent="Theme.Mal.Light">
-        <item name="colorPrimary">@color/md_white_1000</item>
-
-        <item name="mal_card_background">@color/CARD</item>
-        <item name="android:windowBackground">@color/windowBackground</item>
-
-        <item name="mal_color_primary">@color/FontStrong</item>
-        <item name="mal_color_secondary">@color/FontWeak</item>
+        <item name="android:background">?selectableItemBackgroundBorderless</item>
     </style>
 
 </resources>
