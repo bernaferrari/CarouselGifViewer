@@ -7,6 +7,7 @@
         <item name="colorAccent">@color/md_blue_A200</item>
         <item name="colorPrimaryDark">@color/white</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="md_corner_radius">16dp</item>
     </style>
 
 </resources>

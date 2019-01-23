@@ -2,28 +2,13 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/md_grey_500</item>
         <item name="colorPrimaryDark">@color/md_grey_400</item>
+        <item name="md_corner_radius">16dp</item>
     </style>
 
     <style name="TextAppearance.DialogTitle" parent="TextAppearance.MaterialComponents.Headline6" />
-
-    <style name="ThemeOverlay.SdkSearch.Dark.ActionBar" parent="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar">
-        <item name="colorAccent">#fff</item>
-    </style>
-
-    <style name="Plaid.InlineActionButton" parent="ClickableImageView">
-        <item name="android:gravity">center_horizontal</item>
-        <!--<item name="android:fontFamily">@font/ibm_sans_medium</item>-->
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/dark_icon</item>
-        <item name="android:textAllCaps">true</item>
-        <!--<item name="android:textAppearance">@style/TextAppearanceCommentAuthor</item>-->
-        <item name="android:drawablePadding">@dimen/spacing_micro</item>
-        <!--<item name="android:foreground">?android:selectableItemBackgroundBorderless</item>-->
-    </style>
 
     <style name="ClickableImageView">
         <item name="android:clickable">true</item>
