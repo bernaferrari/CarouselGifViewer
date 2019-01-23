@@ -1,4 +1,4 @@
-package com.bernaferrari.carouselgifviewer
+package com.bernaferrari.carouselgifviewer.core
 
 import com.airbnb.mvrx.BaseMvRxViewModel
 import com.airbnb.mvrx.BuildConfig

@@ -3,6 +3,8 @@
 
     <dimen name="horizontal_spacing">12sp</dimen>
 
+    <dimen name="peekHeight">100dp</dimen>
+
     <!--PLAID-->
 
     <!-- standard metrics -->

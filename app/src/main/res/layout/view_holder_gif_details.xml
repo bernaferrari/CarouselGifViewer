@@ -18,12 +18,12 @@
             type="boolean" />
 
         <variable
-            name="longClick"
-            type="android.view.View.OnLongClickListener" />
-
-        <variable
             name="onClick"
             type="android.view.View.OnClickListener" />
+
+        <variable
+            name="onLongClick"
+            type="android.view.View.OnLongClickListener" />
 
     </data>
 
@@ -42,9 +42,9 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@drawable/full_round_corner"
-        android:foreground="@drawable/photos_press"
+        android:foreground="@drawable/selectable_white_ripple"
         android:onClick="@{onClick}"
-        android:onLongClick="@{longClick}">
+        android:onLongClick="@{onLongClick}">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardImage"

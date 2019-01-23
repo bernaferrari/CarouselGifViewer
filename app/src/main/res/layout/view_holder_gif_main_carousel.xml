@@ -13,6 +13,10 @@
             name="customWidth"
             type="int" />
 
+        <variable
+            name="onClick"
+            type="android.view.View.OnClickListener" />
+
     </data>
 
     <androidx.cardview.widget.CardView
@@ -21,7 +25,9 @@
         android:layout_gravity="center"
         app:boxedGifSize="@{customWidth}"
         app:cardCornerRadius="8dp"
-        app:cardElevation="6dp">
+        android:onClick="@{onClick}"
+        app:cardElevation="6dp"
+        tools:layout_margin="16dp">
 
         <ImageView
             android:id="@+id/imageView"

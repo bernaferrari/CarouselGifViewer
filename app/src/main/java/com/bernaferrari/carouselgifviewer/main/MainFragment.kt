@@ -1,21 +1,27 @@
-package com.bernaferrari.carouselgifviewer.new
+package com.bernaferrari.carouselgifviewer.main
 
 import android.os.Bundle
 import android.view.View
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
-import com.bernaferrari.carouselgifviewer.*
+import com.bernaferrari.carouselgifviewer.GifMainCarouselBindingModel_
+import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
+import com.bernaferrari.carouselgifviewer.core.simpleController
+import com.bernaferrari.carouselgifviewer.emptyContent
+import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
+import com.bernaferrari.carouselgifviewer.extensions.openBrowserItemHandler
+import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.yarolegovich.discretescrollview.DiscreteScrollView
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
-import kotlinx.android.synthetic.main.main_fragment.*
+import kotlinx.android.synthetic.main.gif_frag_main.*
 import java.util.concurrent.TimeUnit
 
 class MainFragment : BaseMainFragment(),
@@ -25,25 +31,28 @@ class MainFragment : BaseMainFragment(),
 
     private var previousAdapterPosition = 0
 
-    val disposableManager = CompositeDisposable()
+    private var currentIdSelected = ""
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
         if (state.items is Loading) loadingRow { this.id("loading") }
 
-        if (state.items()?.isEmpty() == true) {
+        if (state.items is Fail) {
             emptyContent {
-                this.id("empty")
-                this.label("Nenhum resultado encontrado")
+                this.id("error")
+                this.label("Erro! Verifique a conexão da internet.")
             }
         }
 
-        val itemHeight = getScreenWidth(requireActivity())
+        val itemHeight = requireActivity().getScreenPercentSize()
 
-        state.items()?.forEach {
-            GifImagePlayerBindingModel_()
+        state.items()?.fullList?.forEach {
+            GifMainCarouselBindingModel_()
                 .id(it.gifId)
                 .gifId(it.gifId)
+                .onClick { _, _, _, position ->
+                    recyclerDiscrete.smoothScrollToPosition(position)
+                }
                 .customWidth(itemHeight)
                 .addTo(this)
         }
@@ -58,8 +67,18 @@ class MainFragment : BaseMainFragment(),
 
         disposableManager += viewModel.idSelected.subscribe {
             bts.state = STATE_COLLAPSED
-            val nextPosition = viewModel.currentList.indexOfFirst { fir -> fir.gifId == it }
+            val nextPosition = viewModel.fullList.indexOfFirst { fir -> fir.gifId == it }
             recyclerDiscrete.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
+        }
+
+        shareContent.setOnClickListener { _ ->
+            val item = viewModel.fullList.first { it.gifId == currentIdSelected }
+            requireActivity().shareItemHandler(item.title, "https://gfycat.com/${item.gifId}")
+        }
+
+        shareContent.setOnLongClickListener {
+            it.context.openBrowserItemHandler("https://gfycat.com/$currentIdSelected")
+            true
         }
 
         disposableManager += viewModel.closeRelay.subscribe { bts.state = STATE_COLLAPSED }
@@ -69,21 +88,23 @@ class MainFragment : BaseMainFragment(),
         // starts the timer to show a loading bar in case the video is not loaded fast
         showProgressIfNecessary()
 
-        println("size: 0 $adapterPosition currentListSize ${viewModel.currentList.size}")
+        println("size: 0 $adapterPosition currentListSize ${viewModel.fullList.size}")
 
-        if (adapterPosition < 0 || viewModel.currentList.isEmpty()) {
+        if (adapterPosition < 0 || viewModel.fullList.isEmpty()) {
             isVideoShown = false
             card.isVisible = false
             return
         }
 
-        val item = viewModel.currentList[adapterPosition]
+        val item = viewModel.fullList[adapterPosition]
 
         video_view?.setVideoURI("https://thumbs.gfycat.com/${item.gifId}-mobile.mp4".toUri())
-        titlecontent.text = item.title
+        titleContent.text = item.title
+        currentIdSelected = item.gifId
 
-//        // scroll to +1 or -1 the index, so user can still see the next/previous item
-//        recycler.scrollToIndex(previousAdapterPosition, adapterPosition, viewModel.currentList.size)
+        viewModel.itemSelectedRelay.accept(adapterPosition)
+        //  scroll to +1 or -1 the index, so user can still see the next/previous item
+        //  recycler.scrollToIndex(previousAdapterPosition, adapterPosition, viewModel.fullList.size)
         previousAdapterPosition = adapterPosition
     }
 
@@ -98,16 +119,14 @@ class MainFragment : BaseMainFragment(),
     }
 
     /*
-    This will start a 750ms timer. If the GIF is not loaded in this period, the progress bar will
-    be shown, so the user knows it is taking longer than expected but it is still loading.
-    */
+        This will start a 750ms timer. If the GIF is not loaded in this period, the progress bar will
+        be shown, so the user knows it is taking longer than expected but it is still loading.
+        */
     private fun showProgressIfNecessary() {
         progressDisposable?.dispose()
         progressDisposable =
                 Completable.timer(750, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                    .subscribe {
-                        // progressBar.visibility = View.VISIBLE
-                    }
+                    .subscribe { progressBar.visibility = View.VISIBLE }
     }
 
 }

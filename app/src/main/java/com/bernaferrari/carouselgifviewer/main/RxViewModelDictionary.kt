@@ -1,9 +1,9 @@
-package com.bernaferrari.carouselgifviewer.new
+package com.bernaferrari.carouselgifviewer.main
 
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MvRxState
-import com.bernaferrari.carouselgifviewer.MvRxViewModel
+import com.bernaferrari.carouselgifviewer.core.MvRxViewModel
 import com.bernaferrari.carouselgifviewer.extensions.normalizeString
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
@@ -12,11 +12,15 @@ import io.reactivex.rxkotlin.Observables
 
 data class GifItem(val gifId: String, val title: String) : MvRxState
 
-data class BibleState(val items: Async<List<GifItem>> = Loading()) : MvRxState
+class GifState(val fullList: List<GifItem>, val filteredList: List<GifItem>)
+
+data class BibleState(val items: Async<GifState> = Loading()) : MvRxState
 
 class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState>(initialState) {
 
     val closeRelay = PublishRelay.create<Unit>()
+
+    var itemSelectedRelay = PublishRelay.create<Int>()
 
     val idSelected = BehaviorRelay.create<String>()
 
@@ -24,7 +28,7 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
     val maxListSize = BehaviorRelay.create<Int>()
 
-    var currentList = listOf<GifItem>()
+    var fullList = listOf<GifItem>()
 
     private val items = listOf(
         GifItem("DeliriousBitterIcelandicsheepdog", "Amém"),
@@ -48,20 +52,24 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
     private fun fetchData() = withState { _ ->
         Observables.combineLatest(
-            Observable.just(items), filterRelay
+            Observable.just(items),
+            filterRelay
         ) { list, filter ->
 
             maxListSize.accept(list.size)
+            fullList = list
 
             // get the string without special characters and filter the list.
             // If the filter is not blank, it will filter the list.
             // If it is blank, it will return the original list.
             val pattern = filter.normalizeString()
-            list.takeIf { filter.isNotBlank() }
+
+            val filtered = list.takeIf { filter.isNotBlank() }
                 ?.filter { pattern in it.title.normalizeString() }
                     ?: list
+
+            GifState(list, filtered)
         }
-            .doOnNext { currentList = it }
             .execute { copy(items = it) }
     }
 }

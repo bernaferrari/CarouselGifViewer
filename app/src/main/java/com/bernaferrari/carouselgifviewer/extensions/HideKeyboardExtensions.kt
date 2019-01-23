@@ -1,4 +1,4 @@
-package com.bernaferrari.carouselgifviewer
+package com.bernaferrari.carouselgifviewer.extensions
 
 import android.app.Activity
 import android.view.KeyEvent
@@ -7,9 +7,6 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.recyclerview.widget.RecyclerView
-import com.bernaferrari.carouselgifviewer.extensions.onEditorAction
-import com.bernaferrari.sdkmonitor.extensions.onKey
-import com.bernaferrari.sdkmonitor.extensions.onScroll
 
 fun hideKeyboardWhenNecessary(
     activity: Activity,

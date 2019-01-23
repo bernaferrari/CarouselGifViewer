@@ -6,14 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.GridLayoutManager
 import com.airbnb.mvrx.BaseMvRxFragment
-import com.bernaferrari.carouselgifviewer.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.R
-import com.bernaferrari.sdkmonitor.extensions.onScroll
-import kotlinx.android.synthetic.main.details_fragment.*
+import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
+import com.bernaferrari.carouselgifviewer.extensions.onScroll
+import io.reactivex.disposables.CompositeDisposable
+import kotlinx.android.synthetic.main.gif_frag_details.*
 
 abstract class BaseDetailsFragment : BaseMvRxFragment() {
 
     val epoxyController by lazy { epoxyController() }
+
+    val disposableManager = CompositeDisposable()
 
     abstract fun epoxyController(): MvRxEpoxyController
 
@@ -26,7 +29,7 @@ abstract class BaseDetailsFragment : BaseMvRxFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.details_fragment, container, false)
+    ): View = inflater.inflate(R.layout.gif_frag_details, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -54,6 +57,7 @@ abstract class BaseDetailsFragment : BaseMvRxFragment() {
     }
 
     override fun onDestroyView() {
+        disposableManager.clear()
         epoxyController.cancelPendingModelBuild()
         super.onDestroyView()
     }

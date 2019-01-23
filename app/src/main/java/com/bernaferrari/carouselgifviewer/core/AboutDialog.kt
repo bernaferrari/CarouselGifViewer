@@ -1,4 +1,4 @@
-package com.bernaferrari.carouselgifviewer
+package com.bernaferrari.carouselgifviewer.core
 
 import android.app.Dialog
 import android.os.Bundle
@@ -6,6 +6,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.carouselgifviewer.BuildConfig.VERSION_NAME
+import com.bernaferrari.carouselgifviewer.R
 
 // inspired from mnml
 class AboutDialog : DialogFragment() {
@@ -13,10 +14,13 @@ class AboutDialog : DialogFragment() {
     companion object {
         private const val TAG = "[ABOUT_DIALOG]"
 
-        /** Shows the about dialog inside of [context]. */
+        /** Shows the about dialog inside of [supportFragmentManager]. */
         fun show(supportFragmentManager: FragmentManager) {
             val dialog = AboutDialog()
-            dialog.show(supportFragmentManager, TAG)
+            dialog.show(
+                supportFragmentManager,
+                TAG
+            )
         }
     }
 

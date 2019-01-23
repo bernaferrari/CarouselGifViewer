@@ -1,7 +1,8 @@
-package com.bernaferrari.carouselgifviewer
+package com.bernaferrari.carouselgifviewer.core
 
 import android.os.Bundle
 import com.airbnb.mvrx.BaseMvRxActivity
+import com.bernaferrari.carouselgifviewer.R
 
 class MainActivity : BaseMvRxActivity() {
 

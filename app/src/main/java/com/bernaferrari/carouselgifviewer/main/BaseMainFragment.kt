@@ -1,28 +1,30 @@
-package com.bernaferrari.carouselgifviewer.new
+package com.bernaferrari.carouselgifviewer.main
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Point
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.BaseMvRxFragment
-import com.bernaferrari.carouselgifviewer.AboutDialog
-import com.bernaferrari.carouselgifviewer.MvRxEpoxyController
+import com.bernaferrari.carouselgifviewer.R
+import com.bernaferrari.carouselgifviewer.core.AboutDialog
+import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
+import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.snackbar.Snackbar
 import com.orhanobut.logger.Logger
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import kotlinx.android.synthetic.main.main_fragment.*
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.gif_frag_main.*
 
 abstract class BaseMainFragment : BaseMvRxFragment() {
 
@@ -43,6 +45,17 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
     var isVideoShown = true
 
+    val disposableManager = CompositeDisposable()
+
+    private val bottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
+        override fun onStateChanged(bottomSheet: View, newState: Int) = Unit
+
+        override fun onSlide(bottomSheet: View, slideOffset: Float) {
+            updateFilterHeadersAlpha(slideOffset)
+            view?.also { hideKeyboardFrom(context, it) }
+        }
+    }
+
     abstract fun epoxyController(): MvRxEpoxyController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,11 +67,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = inflater.inflate(
-        com.bernaferrari.carouselgifviewer.R.layout.main_fragment,
-        container,
-        false
-    )
+    ): View = inflater.inflate(R.layout.gif_frag_main, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -87,7 +96,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
         val bts = BottomSheetBehavior.from(bottomSheet)
 
-        bts.setBottomSheetCallback(createBottomSheetCallback(textView))
+        bts.setBottomSheetCallback(bottomSheetCallback)
 
         header_behavior.setOnClickListener { bts.state = STATE_EXPANDED }
 
@@ -95,20 +104,13 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
             AboutDialog.show(requireActivity().supportFragmentManager)
         }
 
-        val itemHeight = getScreenWidth(requireActivity())
-
-        FrameLayout.LayoutParams(itemHeight, itemHeight).let { params ->
-            params.gravity = Gravity.CENTER
-            card.layoutParams = params
+        card.updateLayoutParams {
+            val itemHeight = requireActivity().getScreenPercentSize()
+            height = itemHeight
+            width = itemHeight
         }
 
         setUpVideoView()
-    }
-
-    fun getScreenWidth(activity: Activity): Int {
-        val windowDimensions = Point()
-        activity.windowManager.defaultDisplay.getSize(windowDimensions)
-        return Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.7f)
     }
 
     var progressDisposable: Disposable? = null
@@ -130,11 +132,11 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
             this.setOnErrorListener {
                 Logger.d("video_view.setOnErrorListener")
 
-//                Snackbar.make(
-//                    drawer,
-//                    context.getString(R.string.gif_error),
-//                    Snackbar.LENGTH_LONG
-//                ).show()
+                Snackbar.make(
+                    parentActivity,
+                    context.getString(R.string.gif_error),
+                    Snackbar.LENGTH_LONG
+                ).show()
 
                 this.setVideoURI(this.videoUri)
 
@@ -158,29 +160,10 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
     }
 
     override fun onDestroyView() {
+        disposableManager.clear()
+        progressDisposable?.dispose()
         epoxyController.cancelPendingModelBuild()
         super.onDestroyView()
-    }
-
-    private fun createBottomSheetCallback(text: TextView): BottomSheetBehavior.BottomSheetCallback {
-        // Set up BottomSheetCallback
-        return object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-
-                when (newState) {
-                    BottomSheetBehavior.STATE_DRAGGING -> text.text = "dragging"
-                    BottomSheetBehavior.STATE_EXPANDED -> text.text = "expanded"
-                    BottomSheetBehavior.STATE_COLLAPSED -> text.text = "collapsed"
-                    else -> {
-                    }
-                }
-            }
-
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {
-                updateFilterHeadersAlpha(slideOffset)
-                view?.also { hideKeyboardFrom(context, it) }
-            }
-        }
     }
 
     fun hideKeyboardFrom(context: Context?, view: View) {
