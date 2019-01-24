@@ -1,13 +1,16 @@
 package com.bernaferrari.carouselgifviewer
 
-import android.content.res.Resources
-import android.view.View
-import android.widget.Button
+import android.graphics.Typeface.BOLD
+import android.text.style.StyleSpan
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.core.view.isVisible
+import android.widget.TextView
+import androidx.core.text.buildSpannedString
+import androidx.core.text.set
+import androidx.core.text.toSpannable
 import androidx.core.view.updateLayoutParams
 import androidx.databinding.BindingAdapter
+import com.bernaferrari.carouselgifviewer.extensions.normalizeString
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
@@ -39,23 +42,15 @@ fun customBoxSize(view: FrameLayout, width: Int) {
     }
 }
 
-@BindingAdapter("isItemVisible")
-fun isItemVisible(view: View, isVisible: Boolean) {
-    view.isVisible = isVisible
-}
+@BindingAdapter("query", "title")
+fun customQuery(view: TextView, query: String, text: String) {
 
-@BindingAdapter("srcRes")
-fun imageViewSrcRes(view: ImageView, drawableRes: Int) {
-    if (drawableRes != 0) {
-        view.setImageResource(drawableRes)
+    val start = text.indexOfFirst { query.normalizeString() in text.normalizeString() }
+    if (start > -1) {
+        val className = text.toSpannable()
+        className[start, start + query.length] = StyleSpan(BOLD)
+        view.text = buildSpannedString { append(className) }
     } else {
-        view.setImageDrawable(null)
+        view.text = text
     }
 }
-
-@BindingAdapter("visibilityFromTotalCount")
-fun visibilityFromTotalCount(view: Button, totalCount: Int) {
-    view.visibility = if (totalCount > 6) View.VISIBLE else View.GONE
-}
-
-fun dp(value: Int, resources: Resources) = (resources.displayMetrics.density * value).toInt()
