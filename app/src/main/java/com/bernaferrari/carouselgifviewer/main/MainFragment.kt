@@ -107,7 +107,7 @@ class MainFragment : BaseMainFragment(),
         val item = viewModel.fullList[adapterPosition]
 
         video_view?.setVideoURI("https://thumbs.gfycat.com/${item.gifId}-mobile.mp4".toUri())
-        titleContent.text = item.title
+        titleContent?.text = item.title // might be null on split screen
         currentIdSelected = item.gifId
 
         viewModel.itemSelectedRelay.accept(adapterPosition)
@@ -127,13 +127,13 @@ class MainFragment : BaseMainFragment(),
     }
 
     /*
-        This will start a 750ms timer. If the GIF is not loaded in this period, the progress bar will
+        This will start a 500ms timer. If the GIF is not loaded in this period, the progress bar will
         be shown, so the user knows it is taking longer than expected but it is still loading.
         */
     private fun showProgressIfNecessary() {
         progressDisposable?.dispose()
         progressDisposable =
-                Completable.timer(750, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+            Completable.timer(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                     .subscribe { progressBar.show() }
     }
 

@@ -23,7 +23,7 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
     var itemSelectedRelay = PublishRelay.create<Int>()
 
-    val idSelected = BehaviorRelay.create<String>()
+    val idSelected = PublishRelay.create<String>()
 
     val filterRelay = BehaviorRelay.create<String>()
 

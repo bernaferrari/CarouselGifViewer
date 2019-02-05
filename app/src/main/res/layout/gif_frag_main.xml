@@ -12,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:elevation="16dp"
+        android:background="@color/white"
         android:orientation="vertical"
-        app:backgroundTint="?attr/colorSecondary"
         app:behavior_hideable="false"
         app:behavior_peekHeight="@dimen/peekHeight"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="VER TODOS"
+                android:text="@string/see_all"
                 app:fontFamily="sans-serif-medium"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -2,6 +2,7 @@ package com.bernaferrari.carouselgifviewer.main
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -68,6 +69,13 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.gif_frag_main, container, false)
 
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        // update the size when config changes, like multi window or split screen
+        updateCardSize()
+        epoxyController.requestModelBuild()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -103,13 +111,14 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
             AboutDialog.show(requireActivity().supportFragmentManager)
         }
 
-        card.updateLayoutParams {
-            val itemHeight = requireActivity().getScreenPercentSize()
-            height = itemHeight
-            width = itemHeight
-        }
-
+        updateCardSize()
         setUpVideoView()
+    }
+
+    private fun updateCardSize() = card.updateLayoutParams {
+        val itemHeight = requireActivity().getScreenPercentSize()
+        height = itemHeight
+        width = itemHeight
     }
 
     var progressDisposable: Disposable? = null

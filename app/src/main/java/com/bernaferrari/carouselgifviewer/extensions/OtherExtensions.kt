@@ -19,7 +19,8 @@ internal inline fun View.onKey(crossinline body: (KeyEvent) -> Boolean) {
 internal fun Activity.getScreenPercentSize(percent: Float = 0.7f): Int {
     val windowDimensions = Point()
     this.windowManager.defaultDisplay.getSize(windowDimensions)
-    return Math.round(Math.min(windowDimensions.y, windowDimensions.x) * percent)
+    val dm = resources.displayMetrics.density * 148 // remove top bar and 'see all' layout
+    return Math.round(Math.min(windowDimensions.y - dm.toInt(), windowDimensions.x) * percent)
 }
 
 fun Activity.shareItemHandler(text: String, content: String) {
