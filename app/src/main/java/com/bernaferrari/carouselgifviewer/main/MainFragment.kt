@@ -9,14 +9,15 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.carouselgifviewer.GifMainCarouselBindingModel_
+import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.core.simpleController
-import com.bernaferrari.carouselgifviewer.emptyContent
 import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
 import com.bernaferrari.carouselgifviewer.extensions.openBrowserItemHandler
 import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
+import com.google.android.material.snackbar.Snackbar
 import com.yarolegovich.discretescrollview.DiscreteScrollView
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -35,14 +36,9 @@ class MainFragment : BaseMainFragment(),
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
-        if (state.items is Loading) loadingRow { this.id("loading") }
+        viewModel.showProgressBar.accept(state.items is Loading)
 
-        if (state.items is Fail) {
-            emptyContent {
-                this.id("error")
-                this.label("Erro! Verifique a conexão da internet.")
-            }
-        }
+        viewModel.showErrorMessage.accept(state.items is Fail)
 
         val itemHeight = requireActivity().getScreenPercentSize()
 
@@ -81,7 +77,19 @@ class MainFragment : BaseMainFragment(),
             true
         }
 
-        disposableManager += viewModel.closeRelay.subscribe { bts.state = STATE_COLLAPSED }
+        disposableManager += viewModel.closeRelay
+            .subscribe { bts.state = STATE_COLLAPSED }
+
+        disposableManager += viewModel.showProgressBar
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { itemsProgress.isVisible = it }
+
+        disposableManager += viewModel.showErrorMessage
+            .observeOn(AndroidSchedulers.mainThread())
+            .skipWhile { !it }
+            .subscribe {
+                Snackbar.make(recyclerDiscrete, R.string.gif_error, Snackbar.LENGTH_LONG).show()
+            }
     }
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
@@ -126,7 +134,7 @@ class MainFragment : BaseMainFragment(),
         progressDisposable?.dispose()
         progressDisposable =
                 Completable.timer(750, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                    .subscribe { progressBar.visibility = View.VISIBLE }
+                    .subscribe { progressBar.show() }
     }
 
 }

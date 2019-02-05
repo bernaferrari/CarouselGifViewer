@@ -9,6 +9,7 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.Observables
+import java.util.concurrent.TimeUnit
 
 data class GifItem(val gifId: String, val title: String) : MvRxState
 
@@ -25,6 +26,10 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
     val idSelected = BehaviorRelay.create<String>()
 
     val filterRelay = BehaviorRelay.create<String>()
+
+    val showProgressBar = BehaviorRelay.create<Boolean>()
+
+    val showErrorMessage = BehaviorRelay.create<Boolean>()
 
     val maxListSize = BehaviorRelay.create<Int>()
 
@@ -70,6 +75,7 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
             GifState(list, filtered)
         }
+            .delay(1500, TimeUnit.MILLISECONDS) // great for testing
             .execute { copy(items = it) }
     }
 }

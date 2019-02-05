@@ -7,11 +7,14 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.getSystemService
 import androidx.core.view.isVisible
+import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.carouselgifviewer.GifDetailsBindingModel_
+import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.core.simpleController
+import com.bernaferrari.carouselgifviewer.emptyContent
 import com.bernaferrari.carouselgifviewer.extensions.hideKeyboardWhenNecessary
 import com.bernaferrari.carouselgifviewer.extensions.onTextChanged
 import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
@@ -33,9 +36,20 @@ class DetailsFragment : BaseDetailsFragment() {
         } ?: throw Exception("null activity. Can't bind inputMethodManager")
     }
 
+    private val fullLineSpan =
+        EpoxyModel.SpanSizeOverrideCallback { _, _, _ -> 2 }
+
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
         if (state.items is Loading) loadingRow { this.id("loading") }
+
+        if (state.items()?.filteredList?.isEmpty() == true) {
+            emptyContent {
+                this.id("empty")
+                this.spanSizeOverride(fullLineSpan)
+                this.label(getString(R.string.no_results))
+            }
+        }
 
         state.items()?.filteredList?.forEach {
             GifDetailsBindingModel_()

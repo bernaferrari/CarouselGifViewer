@@ -23,7 +23,6 @@ import com.orhanobut.logger.Logger
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.gif_frag_main.*
 
 abstract class BaseMainFragment : BaseMvRxFragment() {
@@ -123,7 +122,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
                 if (isVideoShown) {
                     card.visibility = View.VISIBLE
                     progressDisposable?.dispose()
-                    progressBar.isVisible = false
+                    progressBar.hide()
                 }
 
                 this.start()
@@ -133,7 +132,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
                 Logger.d("video_view.setOnErrorListener")
 
                 Snackbar.make(
-                    parentActivity,
+                    recyclerDiscrete,
                     context.getString(R.string.gif_error),
                     Snackbar.LENGTH_LONG
                 ).show()

@@ -26,17 +26,15 @@
             android:clickable="true"
             android:focusable="true">
 
-            <me.zhanghai.android.materialprogressbar.MaterialProgressBar
+            <com.bernaferrari.carouselgifviewer.core.AnimatedProgressBar
                 android:id="@+id/progressBar"
-                style="@style/Widget.MaterialProgressBar.ProgressBar.Horizontal"
-                android:layout_width="0dp"
-                android:layout_height="2dp"
-                android:indeterminate="true"
+                style="@style/DictProgressBar.Horizontal"
+                android:visibility="gone"
+                app:mpb_indeterminateTint="@color/md_grey_500"
+                app:mpb_progressStyle="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:mpb_indeterminateTint="@color/md_grey_500"
-                app:mpb_progressStyle="horizontal"
                 app:mpb_useIntrinsicPadding="false" />
 
             <ImageView
@@ -136,6 +134,15 @@
                 app:srcCompat="@drawable/ic_share" />
 
         </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/itemsProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
         <com.yarolegovich.discretescrollview.DiscreteScrollView
             android:id="@+id/recyclerDiscrete"

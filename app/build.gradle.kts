@@ -1,7 +1,4 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
-import org.jetbrains.kotlin.serialization.js.DynamicTypeDeserializer.id
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
     id("com.android.application")
@@ -34,18 +31,15 @@ android {
             )
         }
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
 
     dataBinding.isEnabled = true
-
 }
 
 dependencies {
-
-    // RecyclerView
-    implementation("com.xwray:groupie:2.3.0")
-    implementation("com.xwray:groupie-kotlin-android-extensions:2.3.0")
-    implementation("com.yarolegovich:discrete-scrollview:1.4.9")
-
 
     // RX
     implementation("io.reactivex.rxjava2:rxandroid:2.1.0")
@@ -57,12 +51,14 @@ dependencies {
     // Glide
     implementation("com.github.bumptech.glide:glide:4.8.0")
 
+    // RecyclerView
+    implementation("com.yarolegovich:discrete-scrollview:1.4.9")
 
-    implementation("com.airbnb.android:mvrx:0.6.0")
-    implementation("com.airbnb.android:epoxy:3.1.0")
-    implementation("com.airbnb.android:epoxy-databinding:3.1.0")
-
-    kapt("com.airbnb.android:epoxy-processor:3.1.0")
+    val epoxy = "3.2.0"
+    implementation("com.airbnb.android:mvrx:0.7.2")
+    implementation("com.airbnb.android:epoxy:$epoxy")
+    implementation("com.airbnb.android:epoxy-databinding:$epoxy")
+    kapt("com.airbnb.android:epoxy-processor:$epoxy")
 
 
     // Google
@@ -77,10 +73,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.0.0")
 
 
-    val nav_version = "1.0.0-alpha06"
-    implementation("android.arch.navigation:navigation-fragment-ktx:$nav_version")
-    implementation("android.arch.navigation:navigation-ui-ktx:$nav_version")
-    implementation("com.afollestad.material-dialogs:core:2.0.0-rc7")
+    val navVersion = "1.0.0-alpha11"
+    implementation("android.arch.navigation:navigation-fragment-ktx:$navVersion")
+    implementation("android.arch.navigation:navigation-ui-ktx:$navVersion")
+    implementation("com.afollestad.material-dialogs:core:2.0.0-rc9")
 
 
     // Logging
@@ -91,17 +87,11 @@ dependencies {
     implementation("me.zhanghai.android.materialprogressbar:library:1.4.2")
     implementation("com.devbrackets.android:exomedia:4.2.3")
 
-
-    // Only on About screen
-    implementation("com.mikepenz:iconics-core:3.1.0@aar")
-    implementation("com.mikepenz:community-material-typeface:2.0.46.1@aar")
-
-
     // Internal
     implementation("com.squareup.okhttp3:okhttp:3.12.1")
     implementation("com.google.android.exoplayer:extension-okhttp:2.8.1")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.3.11")
+    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
     testImplementation("junit:junit:4.12")
 }

@@ -13,6 +13,8 @@
     <string name="search_gifs_hint">Loading…</string>
 
     <string name="gif_error">Error. Check the connection or select another.</string>
+    <string name="no_results">No results found</string>
+
     <string name="dot">•</string>
 
     <string name="author">Author</string>
