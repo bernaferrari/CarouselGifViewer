@@ -11,7 +11,6 @@ import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.carouselgifviewer.GifDetailsBindingModel_
-import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.core.simpleController
 import com.bernaferrari.carouselgifviewer.emptyContent
@@ -47,7 +46,7 @@ class DetailsFragment : BaseDetailsFragment() {
             emptyContent {
                 this.id("empty")
                 this.spanSizeOverride(fullLineSpan)
-                this.label(getString(R.string.no_results))
+                this.label(getString(com.bernaferrari.carouselgifviewer.R.string.no_results))
             }
         }
 
@@ -90,6 +89,12 @@ class DetailsFragment : BaseDetailsFragment() {
             queryClear.isVisible = it.isNotEmpty()
             viewModel.filterRelay.accept(it.toString())
             recycler.scrollToPosition(0)
+        }
+
+        searchIcon.setOnClickListener {
+            val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
+            queryInput.requestFocus()
         }
 
         queryClear.setOnClickListener { queryInput.setText("") }

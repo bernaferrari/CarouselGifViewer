@@ -31,15 +31,6 @@
 
     </data>
 
-    <!--<com.google.android.material.card.MaterialCardView-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_margin="8dp"-->
-    <!--app:strokeWidth="1px"-->
-    <!--app:strokeColor="@color/md_grey_400"-->
-    <!--app:cardCornerRadius="8dp"-->
-    <!--app:cardElevation="0dp">-->
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
@@ -108,7 +99,5 @@
             tools:text="Salomon" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!--</com.google.android.material.card.MaterialCardView>-->
 
 </layout>

@@ -57,7 +57,7 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
     private fun fetchData() = withState { _ ->
         Observables.combineLatest(
-            Observable.just(items),
+            Observable.just(items).delay(1500, TimeUnit.MILLISECONDS), // testing
             filterRelay
         ) { list, filter ->
 
@@ -75,7 +75,6 @@ class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState
 
             GifState(list, filtered)
         }
-            .delay(1500, TimeUnit.MILLISECONDS) // great for testing
             .execute { copy(items = it) }
     }
 }

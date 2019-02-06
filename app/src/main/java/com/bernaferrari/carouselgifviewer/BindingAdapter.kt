@@ -45,8 +45,8 @@ fun customBoxSize(view: FrameLayout, width: Int) {
 @BindingAdapter("query", "title")
 fun customQuery(view: TextView, query: String, text: String) {
 
-    val start = text.indexOfFirst { query.normalizeString() in text.normalizeString() }
-    if (start > -1) {
+    val start = text.normalizeString().indexOf(query.normalizeString())
+    if (start > -1 && query.isNotBlank()) {
         val className = text.toSpannable()
         className[start, start + query.length] = StyleSpan(BOLD)
         view.text = buildSpannedString { append(className) }
