@@ -52,7 +52,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
             updateFilterHeadersAlpha(slideOffset)
-            view?.also { hideKeyboardFrom(context, it) }
+            hideKeyboardFrom(context, bottomSheet)
         }
     }
 
@@ -78,6 +78,10 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // to use RecyclerView without DiscreteScrollView. Currently unstable.
+        // recyclerDiscrete.addItemDecoration(ItemDecoration())
+        // recyclerDiscrete.layoutManager = CenterZoomLayoutManager(requireContext())
 
         recyclerDiscrete.adapter = epoxyController.adapter
 

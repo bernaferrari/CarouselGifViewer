@@ -144,6 +144,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
+        <!--com.airbnb.epoxy.Carousel-->
         <com.yarolegovich.discretescrollview.DiscreteScrollView
             android:id="@+id/recyclerDiscrete"
             android:layout_width="match_parent"
