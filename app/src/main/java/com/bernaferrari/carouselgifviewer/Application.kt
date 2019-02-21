@@ -39,7 +39,7 @@ class Application : MultiDexApplication() {
 
             override fun provide(
                 userAgent: String,
-                listener: TransferListener<in DataSource>?
+                listener: TransferListener?
             ): DataSource.Factory {
                 if (instance == null) {
                     // Updates the network data source to use the OKHttp implementation

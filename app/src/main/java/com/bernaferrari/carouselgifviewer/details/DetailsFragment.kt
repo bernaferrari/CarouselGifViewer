@@ -82,7 +82,7 @@ class DetailsFragment : BaseDetailsFragment() {
 
         disposableManager += viewModel.itemSelectedRelay.observeOn(AndroidSchedulers.mainThread())
             // only call scrollToPosition when user is not searching.
-            .skipWhile { viewModel.filterRelay.value.isNotBlank() }
+            .skipWhile { viewModel.filterRelay.value?.isNotBlank() == true }
             .subscribe { recycler.scrollToPosition(it) }
 
         queryInput.onTextChanged {

@@ -42,14 +42,14 @@ android {
 dependencies {
 
     // RX
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.0")
-    implementation("io.reactivex.rxjava2:rxjava:2.2.5")
+    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
+    implementation("io.reactivex.rxjava2:rxjava:2.2.6")
     implementation("io.reactivex.rxjava2:rxkotlin:2.3.0")
-    implementation("com.jakewharton.rxrelay2:rxrelay:2.0.0")
+    implementation("com.jakewharton.rxrelay2:rxrelay:2.1.0")
 
 
     // Glide
-    implementation("com.github.bumptech.glide:glide:4.8.0")
+    implementation("com.github.bumptech.glide:glide:4.9.0")
 
     // RecyclerView
     implementation("com.yarolegovich:discrete-scrollview:1.4.9")
@@ -62,7 +62,6 @@ dependencies {
 
 
     // Google
-
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
     implementation("androidx.recyclerview:recyclerview:1.0.0")
     implementation("androidx.appcompat:appcompat:1.0.2")
@@ -73,10 +72,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-extensions:2.0.0")
 
 
-    val navVersion = "1.0.0-alpha11"
+    val navVersion = "1.0.0-beta02"
     implementation("android.arch.navigation:navigation-fragment-ktx:$navVersion")
     implementation("android.arch.navigation:navigation-ui-ktx:$navVersion")
-    implementation("com.afollestad.material-dialogs:core:2.0.0-rc9")
+    implementation("com.afollestad.material-dialogs:core:2.0.0")
 
 
     // Logging
@@ -84,12 +83,16 @@ dependencies {
 
 
     // UI
-    implementation("me.zhanghai.android.materialprogressbar:library:1.4.2")
-    implementation("com.devbrackets.android:exomedia:4.2.3")
+    implementation("me.zhanghai.android.materialprogressbar:library:1.6.1")
+
+
+    // Player
+    implementation("com.devbrackets.android:exomedia:4.3.0")
+    implementation("com.google.android.exoplayer:extension-okhttp:2.9.5")
+
 
     // Internal
-    implementation("com.squareup.okhttp3:okhttp:3.12.1")
-    implementation("com.google.android.exoplayer:extension-okhttp:2.8.1")
+    implementation("com.squareup.okhttp3:okhttp:3.13.1")
     implementation("androidx.multidex:multidex:2.0.1")
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
