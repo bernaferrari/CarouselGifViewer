@@ -8,15 +8,18 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.airbnb.mvrx.BaseMvRxFragment
 import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
+import com.bernaferrari.carouselgifviewer.extensions.calculateNoOfColumns
 import com.bernaferrari.carouselgifviewer.extensions.onScroll
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.gif_frag_details.*
 
 abstract class BaseDetailsFragment : BaseMvRxFragment() {
 
-    val epoxyController by lazy { epoxyController() }
+    private val epoxyController by lazy { epoxyController() }
 
     val disposableManager = CompositeDisposable()
+
+    var numOfColumns = 2
 
     abstract fun epoxyController(): MvRxEpoxyController
 
@@ -34,7 +37,9 @@ abstract class BaseDetailsFragment : BaseMvRxFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        recycler.layoutManager = GridLayoutManager(context, 2)
+        // todo re-calculate and re-set it every time onConfigurationChanged is called
+        numOfColumns = Math.min(view.context.calculateNoOfColumns(), 2)
+        recycler.layoutManager = GridLayoutManager(context, numOfColumns)
         recycler.setController(epoxyController)
 
         recycler.onScroll { dx, dy ->

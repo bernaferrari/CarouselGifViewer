@@ -78,6 +78,7 @@ class MainFragment : BaseMainFragment(),
         }
 
         disposableManager += viewModel.closeRelay
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe { bts.state = STATE_COLLAPSED }
 
         disposableManager += viewModel.showProgressBar
@@ -134,7 +135,6 @@ class MainFragment : BaseMainFragment(),
         progressDisposable?.dispose()
         progressDisposable =
             Completable.timer(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                    .subscribe { progressBar.show() }
+                .subscribe { progressBar?.show() }
     }
-
 }

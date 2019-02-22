@@ -41,7 +41,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         private const val ALPHA_HEADER_MAX = 0.67f
     }
 
-    val epoxyController by lazy { epoxyController() }
+    private val epoxyController by lazy { epoxyController() }
 
     var isVideoShown = true
 
@@ -78,10 +78,6 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // to use RecyclerView without DiscreteScrollView. Currently unstable.
-        // recyclerDiscrete.addItemDecoration(ItemDecoration())
-        // recyclerDiscrete.layoutManager = CenterZoomLayoutManager(requireContext())
 
         recyclerDiscrete.adapter = epoxyController.adapter
 
@@ -188,10 +184,13 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         // Alpha of normal header views increases as the sheet expands, while alpha of description
         // views increases as the sheet collapses. To prevent overlap, we use a threshold at which
         // the views "trade places".
-        frag_behavior.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_HEADER_MAX)
-        header_behavior.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_DESC_MAX)
+        //
+        // these views might trigger a crash if window is being resized (pop-up/split-screen)
+        // and they are called.
+        frag_behavior?.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_HEADER_MAX)
+        header_behavior?.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_DESC_MAX)
 
-        frag_behavior.isInvisible = frag_behavior.alpha == 0f
+        frag_behavior?.isInvisible = frag_behavior.alpha == 0f
     }
 
     /**

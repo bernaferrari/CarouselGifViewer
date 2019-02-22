@@ -11,6 +11,8 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.bernaferrari.carouselgifviewer.R
+import kotlin.math.roundToInt
+
 
 internal inline fun View.onKey(crossinline body: (KeyEvent) -> Boolean) {
     setOnKeyListener { _, _, event -> body(event) }
@@ -21,6 +23,12 @@ internal fun Activity.getScreenPercentSize(percent: Float = 0.7f): Int {
     this.windowManager.defaultDisplay.getSize(windowDimensions)
     val dm = resources.displayMetrics.density * 148 // remove top bar and 'see all' layout
     return Math.round(Math.min(windowDimensions.y - dm.toInt(), windowDimensions.x) * percent)
+}
+
+internal fun Context.calculateNoOfColumns(columnWidthDp: Float = 160f): Int {
+    val displayMetrics = this.resources.displayMetrics
+    val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+    return (screenWidthDp / columnWidthDp).roundToInt()
 }
 
 fun Activity.shareItemHandler(text: String, content: String) {

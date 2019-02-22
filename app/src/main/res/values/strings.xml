@@ -9,7 +9,7 @@
     <string name="dismiss">Dismiss</string>
     <string name="view_source">View source</string>
 
-    <string name="search_gifs_hint_loaded">Search %1d gifs…</string>
+    <string name="search_gifs_hint_loaded">Search %1d GIFs…</string>
     <string name="search_gifs_hint">Loading…</string>
 
     <string name="gif_error">Error. Check the connection or select another.</string>

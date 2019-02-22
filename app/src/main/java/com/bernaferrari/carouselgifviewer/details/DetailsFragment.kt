@@ -11,14 +11,15 @@ import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.carouselgifviewer.GifDetailsBindingModel_
+import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.core.simpleController
 import com.bernaferrari.carouselgifviewer.emptyContent
 import com.bernaferrari.carouselgifviewer.extensions.hideKeyboardWhenNecessary
 import com.bernaferrari.carouselgifviewer.extensions.onTextChanged
 import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
+import com.bernaferrari.carouselgifviewer.loadingRow
 import com.bernaferrari.carouselgifviewer.main.RxViewModelDictionary
-import com.bernaferrari.carouselgifviewer.main.loadingRow
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.gif_frag_details.*
@@ -29,14 +30,14 @@ class DetailsFragment : BaseDetailsFragment() {
 
     private val inputMethodManager by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            activity?.getSystemService<InputMethodManager>()
+            activity?.getSystemService()
         } else {
             activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         } ?: throw Exception("null activity. Can't bind inputMethodManager")
     }
 
     private val fullLineSpan =
-        EpoxyModel.SpanSizeOverrideCallback { _, _, _ -> 2 }
+        EpoxyModel.SpanSizeOverrideCallback { _, _, _ -> numOfColumns }
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
@@ -78,13 +79,14 @@ class DetailsFragment : BaseDetailsFragment() {
         viewModel.filterRelay.accept(queryInput.text.toString())
 
         disposableManager += viewModel.maxListSize.observeOn(AndroidSchedulers.mainThread())
-            .subscribe { queryInput.hint = "Pesquisar $it GIFs.." }
+            .subscribe { queryInput.hint = getString(R.string.search_gifs_hint_loaded, it) }
 
         disposableManager += viewModel.itemSelectedRelay.observeOn(AndroidSchedulers.mainThread())
             // only call scrollToPosition when user is not searching.
             .skipWhile { viewModel.filterRelay.value?.isNotBlank() == true }
             .subscribe { recycler.scrollToPosition(it) }
 
+        // when input changes, scroll to top, update clear button and ask the ViewModel to refresh.
         queryInput.onTextChanged {
             queryClear.isVisible = it.isNotEmpty()
             viewModel.filterRelay.accept(it.toString())
