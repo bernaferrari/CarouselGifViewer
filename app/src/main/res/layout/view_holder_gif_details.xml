@@ -85,7 +85,6 @@
             android:layout_marginLeft="12dp"
             android:layout_marginRight="12dp"
             android:ellipsize="end"
-            android:fontFamily="sans-serif"
             android:gravity="center|start"
             android:includeFontPadding="false"
             android:lines="3"

@@ -17,7 +17,7 @@ class GifState(val fullList: List<GifItem>, val filteredList: List<GifItem>)
 
 data class BibleState(val items: Async<GifState> = Loading()) : MvRxState
 
-class RxViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState>(initialState) {
+class ViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState>(initialState) {
 
     val closeRelay = PublishRelay.create<Unit>()
 

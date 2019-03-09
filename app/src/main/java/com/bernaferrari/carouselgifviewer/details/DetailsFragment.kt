@@ -19,14 +19,14 @@ import com.bernaferrari.carouselgifviewer.extensions.hideKeyboardWhenNecessary
 import com.bernaferrari.carouselgifviewer.extensions.onTextChanged
 import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
 import com.bernaferrari.carouselgifviewer.loadingRow
-import com.bernaferrari.carouselgifviewer.main.RxViewModelDictionary
+import com.bernaferrari.carouselgifviewer.main.ViewModelDictionary
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.gif_frag_details.*
 
 class DetailsFragment : BaseDetailsFragment() {
 
-    private val viewModel: RxViewModelDictionary by activityViewModel()
+    private val viewModel: ViewModelDictionary by activityViewModel()
 
     private val inputMethodManager by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -41,7 +41,12 @@ class DetailsFragment : BaseDetailsFragment() {
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
-        if (state.items is Loading) loadingRow { this.id("loading") }
+        if (state.items is Loading) {
+            loadingRow {
+                this.id("loading")
+                this.spanSizeOverride(fullLineSpan)
+            }
+        }
 
         if (state.items()?.filteredList?.isEmpty() == true) {
             emptyContent {

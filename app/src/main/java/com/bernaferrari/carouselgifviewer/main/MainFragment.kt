@@ -28,9 +28,7 @@ import java.util.concurrent.TimeUnit
 class MainFragment : BaseMainFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
-    private val viewModel: RxViewModelDictionary by activityViewModel()
-
-    private var previousAdapterPosition = 0
+    private val viewModel: ViewModelDictionary by activityViewModel()
 
     private var currentIdSelected = ""
 
@@ -97,9 +95,14 @@ class MainFragment : BaseMainFragment(),
         // starts the timer to show a loading bar in case the video is not loaded fast
         showProgressIfNecessary()
 
-        println("size: 0 $adapterPosition currentListSize ${viewModel.fullList.size}")
+        // if user scrolls before loading finishes, position changes and things get weird
+        if (adapterPosition < 0 && viewModel.fullList.isNotEmpty()) {
+            recyclerDiscrete.scrollToPosition(0)
+            return
+        }
 
-        if (adapterPosition < 0 || viewModel.fullList.isEmpty()) {
+        // if viewModel is empty, hide everything
+        if (viewModel.fullList.isEmpty()) {
             isVideoShown = false
             card.isVisible = false
             return
@@ -112,9 +115,6 @@ class MainFragment : BaseMainFragment(),
         currentIdSelected = item.gifId
 
         viewModel.itemSelectedRelay.accept(adapterPosition)
-        //  scroll to +1 or -1 the index, so user can still see the next/previous item
-        //  recycler.scrollToIndex(previousAdapterPosition, adapterPosition, viewModel.fullList.size)
-        previousAdapterPosition = adapterPosition
     }
 
     override fun onStart() {

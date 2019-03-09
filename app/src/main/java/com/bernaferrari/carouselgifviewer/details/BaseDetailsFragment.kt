@@ -42,7 +42,7 @@ abstract class BaseDetailsFragment : BaseMvRxFragment() {
         recycler.layoutManager = GridLayoutManager(context, numOfColumns)
         recycler.setController(epoxyController)
 
-        recycler.onScroll { dx, dy ->
+        recycler.onScroll { _, dy ->
             // this will take care of titleElevation
             // recycler might be null when back is pressed
             val raiseTitleBar = dy > 0 || recycler?.computeVerticalScrollOffset() != 0

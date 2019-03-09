@@ -1,13 +1,10 @@
 package com.bernaferrari.carouselgifviewer.main
 
-import android.app.Activity
-import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -17,6 +14,7 @@ import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.AboutDialog
 import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
+import com.bernaferrari.carouselgifviewer.extensions.hideKeyboardFrom
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.snackbar.Snackbar
@@ -172,12 +170,6 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         progressDisposable?.dispose()
         epoxyController.cancelPendingModelBuild()
         super.onDestroyView()
-    }
-
-    fun hideKeyboardFrom(context: Context?, view: View) {
-        val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as? InputMethodManager
-                ?: return
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     private fun updateFilterHeadersAlpha(slideOffset: Float) {

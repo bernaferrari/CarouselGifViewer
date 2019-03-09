@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Point
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ShareCompat
@@ -37,6 +38,12 @@ fun Activity.shareItemHandler(text: String, content: String) {
         .setChooserTitle(this.getString(R.string.share, text))
         .setText(content)
         .startChooser()
+}
+
+fun hideKeyboardFrom(context: Context?, view: View) {
+    val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as? InputMethodManager
+            ?: return
+    imm.hideSoftInputFromWindow(view.windowToken, 0)
 }
 
 fun Context.openBrowserItemHandler(url: String) {

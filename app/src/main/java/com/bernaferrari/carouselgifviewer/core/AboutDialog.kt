@@ -1,6 +1,8 @@
 package com.bernaferrari.carouselgifviewer.core
 
 import android.app.Dialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
@@ -33,6 +35,12 @@ class AboutDialog : DialogFragment() {
                 html = true,
                 lineHeightMultiplier = 1.4f
             )
-            .positiveButton(R.string.dismiss)
+            .positiveButton(R.string.contact) {
+                val email = "bernaferrari2+cgv@gmail.com"
+                val emailIntent = Intent("android.intent.action.SENDTO", Uri.parse("mailto:$email"))
+                emailIntent.putExtra("android.intent.extra.SUBJECT", "CarouselGifViewer help")
+                context.startActivity(Intent.createChooser(emailIntent, "Contact"))
+            }
+            .negativeButton(R.string.dismiss)
     }
 }

@@ -7,6 +7,7 @@
     <string name="more_options">More options</string>
     <string name="clear_search_query">Clear search</string>
     <string name="dismiss">Dismiss</string>
+    <string name="contact">Contact</string>
     <string name="view_source">View source</string>
 
     <string name="search_gifs_hint_loaded">Search %1d GIFs…</string>
