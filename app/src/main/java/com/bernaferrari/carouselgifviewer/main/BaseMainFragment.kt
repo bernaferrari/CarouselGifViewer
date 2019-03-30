@@ -10,11 +10,11 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.BaseMvRxFragment
+import com.bernaferrari.base.misc.hideKeyboard
+import com.bernaferrari.base.mvrx.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.R
 import com.bernaferrari.carouselgifviewer.core.AboutDialog
-import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
 import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
-import com.bernaferrari.carouselgifviewer.extensions.hideKeyboardFrom
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.snackbar.Snackbar
@@ -50,7 +50,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
             updateFilterHeadersAlpha(slideOffset)
-            hideKeyboardFrom(context, bottomSheet)
+            activity?.hideKeyboard()
         }
     }
 
@@ -67,7 +67,7 @@ abstract class BaseMainFragment : BaseMvRxFragment() {
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.gif_frag_main, container, false)
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // update the size when config changes, like multi window or split screen
         updateCardSize()

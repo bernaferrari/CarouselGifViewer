@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import com.bernaferrari.buildsrc.Libs
 
 plugins {
     id("com.android.application")
@@ -41,45 +41,61 @@ android {
 
 dependencies {
 
-    // RX
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.1")
-    implementation("io.reactivex.rxjava2:rxjava:2.2.6")
-    implementation("io.reactivex.rxjava2:rxkotlin:2.3.0")
-    implementation("com.jakewharton.rxrelay2:rxrelay:2.1.0")
+    implementation(project(":base"))
+    implementation(project(":base-android"))
 
+
+    implementation(Libs.Kotlin.stdlib)
+    implementation(Libs.Coroutines.core)
+    implementation(Libs.Coroutines.android)
+
+    // Dagger
+    implementation(Libs.Dagger.dagger)
+    kapt(Libs.Dagger.compiler)
+
+    implementation(Libs.Dagger.androidSupport)
+    kapt(Libs.Dagger.androidProcessor)
+
+    compileOnly(Libs.AssistedInject.annotationDagger2)
+    kapt(Libs.AssistedInject.processorDagger2)
+
+
+    // RX
+    implementation(Libs.RxJava.rxJava)
+    implementation(Libs.RxJava.rxAndroid)
+    implementation(Libs.RxJava.rxKotlin)
+    implementation(Libs.RxJava.rxRelay)
 
     // Glide
-    implementation("com.github.bumptech.glide:glide:4.9.0")
+    implementation(Libs.Glide.glide)
+    kapt(Libs.Glide.compiler)
 
     // RecyclerView
-    implementation("com.yarolegovich:discrete-scrollview:1.4.9")
+    implementation(Libs.discreteScrollView)
 
-    val epoxy = "3.2.0"
-    implementation("com.airbnb.android:mvrx:0.7.2")
-    implementation("com.airbnb.android:epoxy:$epoxy")
-    implementation("com.airbnb.android:epoxy-databinding:$epoxy")
-    kapt("com.airbnb.android:epoxy-processor:$epoxy")
+    // Epoxy
+    implementation(Libs.Epoxy.epoxy)
+    implementation(Libs.Epoxy.dataBinding)
+    kapt(Libs.Epoxy.processor)
+
+    implementation(Libs.mvRx)
 
 
     // Google
-    implementation("androidx.constraintlayout:constraintlayout:1.1.3")
-    implementation("androidx.recyclerview:recyclerview:1.0.0")
-    implementation("androidx.appcompat:appcompat:1.0.2")
-    implementation("androidx.browser:browser:1.0.0")
-    implementation("com.google.android.material:material:1.0.0")
+    implementation(Libs.Google.material)
+    implementation(Libs.AndroidX.coreKtx)
+    implementation(Libs.AndroidX.constraintlayout)
+    implementation(Libs.AndroidX.appcompat)
+    implementation(Libs.AndroidX.recyclerview)
+    implementation(Libs.AndroidX.browser)
+    implementation(Libs.AndroidX.Lifecycle.extensions)
 
-    implementation("androidx.core:core-ktx:1.0.1")
-    implementation("androidx.lifecycle:lifecycle-extensions:2.0.0")
+    implementation(Libs.AndroidX.Navigation.navigationUi)
+    implementation(Libs.AndroidX.Navigation.navigationFragment)
 
-
-    val navVersion = "1.0.0-beta02"
-    implementation("android.arch.navigation:navigation-fragment-ktx:$navVersion")
-    implementation("android.arch.navigation:navigation-ui-ktx:$navVersion")
-    implementation("com.afollestad.material-dialogs:core:2.0.0")
-
-
-    // Logging
-    implementation("com.orhanobut:logger:2.2.0")
+    implementation(Libs.materialDialogs)
+    implementation(Libs.logger)
+    implementation(Libs.okHttp)
 
 
     // UI
@@ -89,12 +105,6 @@ dependencies {
     // Player
     implementation("com.devbrackets.android:exomedia:4.3.0")
     implementation("com.google.android.exoplayer:extension-okhttp:2.9.5")
-
-
-    // Internal
-    implementation("com.squareup.okhttp3:okhttp:3.13.1")
-    implementation("androidx.multidex:multidex:2.0.1")
-    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
     testImplementation("junit:junit:4.12")
 }

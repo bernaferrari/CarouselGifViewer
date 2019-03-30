@@ -5,6 +5,10 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorAccent">@color/md_grey_500</item>
         <item name="colorPrimaryDark">@color/md_grey_400</item>
+
+        <item name="toolbarColor">@color/white</item>
+        <item name="searchBoxColor">@color/md_grey_100</item>
+        <item name="colorOnPrimary">@color/md_grey_600</item>
         <item name="md_corner_radius">16dp</item>
     </style>
 

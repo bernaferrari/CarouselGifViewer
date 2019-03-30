@@ -7,6 +7,10 @@
         <item name="colorAccent">@color/md_blue_A200</item>
         <item name="colorPrimaryDark">@color/white</item>
         <item name="android:windowLightStatusBar">true</item>
+
+        <item name="toolbarColor">@color/white</item>
+        <item name="searchBoxColor">@color/md_grey_100</item>
+        <item name="colorOnPrimary">@color/md_grey_600</item>
         <item name="md_corner_radius">16dp</item>
     </style>
 

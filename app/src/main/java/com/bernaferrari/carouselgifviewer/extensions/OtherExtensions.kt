@@ -3,9 +3,6 @@ package com.bernaferrari.carouselgifviewer.extensions
 import android.app.Activity
 import android.content.Context
 import android.graphics.Point
-import android.view.KeyEvent
-import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ShareCompat
@@ -14,11 +11,6 @@ import androidx.core.net.toUri
 import com.bernaferrari.carouselgifviewer.R
 import kotlin.math.roundToInt
 
-
-internal inline fun View.onKey(crossinline body: (KeyEvent) -> Boolean) {
-    setOnKeyListener { _, _, event -> body(event) }
-}
-
 internal fun Activity.getScreenPercentSize(percent: Float = 0.7f): Int {
     val windowDimensions = Point()
     this.windowManager.defaultDisplay.getSize(windowDimensions)
@@ -26,10 +18,12 @@ internal fun Activity.getScreenPercentSize(percent: Float = 0.7f): Int {
     return Math.round(Math.min(windowDimensions.y - dm.toInt(), windowDimensions.x) * percent)
 }
 
-internal fun Context.calculateNoOfColumns(columnWidthDp: Float = 160f): Int {
+internal fun Context?.calculateNoOfColumns(columnWidthDp: Float = 160f, default: Int = 2): Int {
+    if (this == null) return default
+
     val displayMetrics = this.resources.displayMetrics
     val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-    return (screenWidthDp / columnWidthDp).roundToInt()
+    return Math.min((screenWidthDp / columnWidthDp).roundToInt(), default)
 }
 
 fun Activity.shareItemHandler(text: String, content: String) {
@@ -38,12 +32,6 @@ fun Activity.shareItemHandler(text: String, content: String) {
         .setChooserTitle(this.getString(R.string.share, text))
         .setText(content)
         .startChooser()
-}
-
-fun hideKeyboardFrom(context: Context?, view: View) {
-    val imm = context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as? InputMethodManager
-            ?: return
-    imm.hideSoftInputFromWindow(view.windowToken, 0)
 }
 
 fun Context.openBrowserItemHandler(url: String) {

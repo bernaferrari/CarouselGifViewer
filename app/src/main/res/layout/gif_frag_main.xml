@@ -71,11 +71,10 @@
             android:alpha="0">
 
             <fragment
-                android:name="com.bernaferrari.carouselgifviewer.details.DetailsFragment"
+                android:id="@+id/DetailsFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/DetailsFragment"
-                tools:layout="@layout/gif_frag_details" />
+                android:name="com.bernaferrari.carouselgifviewer.main.DetailsFragment" />
 
         </FrameLayout>
 

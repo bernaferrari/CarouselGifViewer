@@ -3,8 +3,8 @@ package com.bernaferrari.carouselgifviewer.main
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MvRxState
-import com.bernaferrari.carouselgifviewer.core.MvRxViewModel
-import com.bernaferrari.carouselgifviewer.extensions.normalizeString
+import com.bernaferrari.base.misc.normalizeString
+import com.bernaferrari.base.mvrx.MvRxViewModel
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.Observable
@@ -77,4 +77,22 @@ class ViewModelDictionary(initialState: BibleState) : MvRxViewModel<BibleState>(
         }
             .execute { copy(items = it) }
     }
+
+//    @AssistedInject.Factory
+//    interface Factory {
+//        fun create(initialState: BibleState): ViewModelDictionary
+//    }
+//
+//    companion object : MvRxViewModelFactory<ViewModelDictionary, BibleState> {
+//
+//        override fun create(
+//            viewModelContext: ViewModelContext,
+//            state: BibleState
+//        ): ViewModelDictionary? {
+//            val fragment: DetailsFragment = (viewModelContext as FragmentViewModelContext).fragment()
+//            return fragment.detailsViewModelFactory.create(state)
+//        }
+//    }
+
+
 }

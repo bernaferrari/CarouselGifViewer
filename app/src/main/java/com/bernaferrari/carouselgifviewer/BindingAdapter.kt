@@ -10,7 +10,7 @@ import androidx.core.text.set
 import androidx.core.text.toSpannable
 import androidx.core.view.updateLayoutParams
 import androidx.databinding.BindingAdapter
-import com.bernaferrari.carouselgifviewer.extensions.normalizeString
+import com.bernaferrari.base.misc.normalizeString
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 

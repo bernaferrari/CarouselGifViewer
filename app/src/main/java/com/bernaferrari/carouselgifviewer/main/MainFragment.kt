@@ -8,10 +8,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
+import com.bernaferrari.base.mvrx.MvRxEpoxyController
+import com.bernaferrari.base.mvrx.simpleController
 import com.bernaferrari.carouselgifviewer.GifMainCarouselBindingModel_
 import com.bernaferrari.carouselgifviewer.R
-import com.bernaferrari.carouselgifviewer.core.MvRxEpoxyController
-import com.bernaferrari.carouselgifviewer.core.simpleController
 import com.bernaferrari.carouselgifviewer.extensions.getScreenPercentSize
 import com.bernaferrari.carouselgifviewer.extensions.openBrowserItemHandler
 import com.bernaferrari.carouselgifviewer.extensions.shareItemHandler
