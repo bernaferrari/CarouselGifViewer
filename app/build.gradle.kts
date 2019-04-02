@@ -78,7 +78,8 @@ dependencies {
     implementation(Libs.Epoxy.dataBinding)
     kapt(Libs.Epoxy.processor)
 
-    implementation(Libs.mvRx)
+    implementation(Libs.MvRx.main)
+    testImplementation(Libs.MvRx.testing)
 
 
     // Google

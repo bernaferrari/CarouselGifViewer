@@ -2,14 +2,11 @@ package com.bernaferrari.carouselgifviewer.core
 
 import android.content.Context
 import com.bernaferrari.carouselgifviewer.MainApplication
-import com.bernaferrari.carouselgifviewer.main.BaseMainFragment
-import com.bernaferrari.carouselgifviewer.main.DetailsFragment
+import com.bernaferrari.carouselgifviewer.main.DatabaseDataSource
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
 import dagger.Provides
-import dagger.android.ContributesAndroidInjector
-import dagger.android.support.AndroidSupportInjectionModule
 import javax.inject.Singleton
 
 @Module
@@ -21,21 +18,19 @@ class AppModule {
 }
 
 @Module
-abstract class DictInjectorsModule {
+class DictModule {
 
-    @ContributesAndroidInjector
-    abstract fun dictDetailsFragment(): DetailsFragment
+    @Singleton
+    @Provides
+    fun provideDictRepository() = DatabaseDataSource()
 
-    @ContributesAndroidInjector
-    abstract fun dictBaseFragment(): BaseMainFragment
 }
 
 
 @Component(
     modules = [
-        AndroidSupportInjectionModule::class,
-        DictInjectorsModule::class,
-        AppModule::class
+        AppModule::class,
+        DictModule::class
     ]
 )
 @Singleton
@@ -49,5 +44,12 @@ interface SingletonComponent {
         fun build(): SingletonComponent
     }
 
-    fun inject(app: MainApplication)
+    fun dictRepository(): DatabaseDataSource
+
+}
+
+class Injector private constructor() {
+    companion object {
+        fun get(): SingletonComponent = MainApplication.get().component
+    }
 }

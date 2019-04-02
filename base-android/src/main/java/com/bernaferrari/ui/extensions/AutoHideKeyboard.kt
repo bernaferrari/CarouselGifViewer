@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bernaferrari.base.misc.onEditorAction
 import com.bernaferrari.base.view.onScroll
 
-fun hideKeyboardWhenNecessary(recyclerView: RecyclerView, editText: EditText) {
+fun hideKeyboardWhenNecessary(recyclerView: RecyclerView?, editText: EditText) {
 
     val inputMethodManager by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -26,7 +26,7 @@ fun hideKeyboardWhenNecessary(recyclerView: RecyclerView, editText: EditText) {
     val touchSlop = ViewConfiguration.get(editText.context).scaledTouchSlop
     var totalDy = 0
 
-    recyclerView.onScroll { _, dy ->
+    recyclerView?.onScroll { _, dy ->
         if (dy > 0) {
             totalDy += dy
             if (totalDy >= touchSlop) {

@@ -5,8 +5,6 @@ import android.view.View
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.airbnb.mvrx.Fail
-import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.base.mvrx.MvRxEpoxyController
 import com.bernaferrari.base.mvrx.simpleController
@@ -28,19 +26,17 @@ import java.util.concurrent.TimeUnit
 class MainFragment : BaseMainFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
-    private val viewModel: ViewModelDictionary by activityViewModel()
+    private val viewModel: DictViewModel by activityViewModel()
 
     private var currentIdSelected = ""
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
-        viewModel.showProgressBar.accept(state.items is Loading)
-
-        viewModel.showErrorMessage.accept(state.items is Fail)
+        //        viewModel.showErrorMessage.accept(state.items is Fail)
 
         val itemHeight = requireActivity().getScreenPercentSize()
 
-        state.items()?.fullList?.forEach {
+        state.fullList.forEach {
             GifMainCarouselBindingModel_()
                 .id(it.gifId)
                 .gifId(it.gifId)
@@ -79,9 +75,9 @@ class MainFragment : BaseMainFragment(),
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe { bts.state = STATE_COLLAPSED }
 
-        disposableManager += viewModel.showProgressBar
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { itemsProgress.isVisible = it }
+        viewModel.selectSubscribe(DictState::isLoading) {
+            itemsProgress.isVisible = it
+        }
 
         disposableManager += viewModel.showErrorMessage
             .observeOn(AndroidSchedulers.mainThread())

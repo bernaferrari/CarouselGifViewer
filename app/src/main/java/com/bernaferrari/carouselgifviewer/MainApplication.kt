@@ -1,8 +1,8 @@
 package com.bernaferrari.carouselgifviewer
 
 import android.app.Application
-import androidx.fragment.app.Fragment
 import com.bernaferrari.carouselgifviewer.core.DaggerSingletonComponent
+import com.bernaferrari.carouselgifviewer.core.SingletonComponent
 import com.devbrackets.android.exomedia.ExoMedia
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.DataSource
@@ -13,32 +13,23 @@ import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvicto
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.support.HasSupportFragmentInjector
 import okhttp3.OkHttpClient
 import java.io.File
-import javax.inject.Inject
 
 /**
  * MainApplication class, responsible for initiating Logger and ExoMedia's cache
  */
-class MainApplication : Application(), HasSupportFragmentInjector {
+class MainApplication : Application() {
 
-    @Inject
-    lateinit var fragmentDispatchingAndroidInjector: DispatchingAndroidInjector<Fragment>
-
-    override fun supportFragmentInjector(): AndroidInjector<Fragment>? {
-        return fragmentDispatchingAndroidInjector
-    }
+    lateinit var component: SingletonComponent
 
     override fun onCreate() {
         super.onCreate()
+        INSTANCE = this
 
-        DaggerSingletonComponent.builder()
+        component = DaggerSingletonComponent.builder()
             .application(this)
             .build()
-            .inject(this)
 
         Logger.addLogAdapter(object : AndroidLogAdapter() {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
@@ -81,5 +72,13 @@ class MainApplication : Application(), HasSupportFragmentInjector {
                         ?: throw NullPointerException("Expression 'instance' must not be null")
             }
         })
+    }
+
+    companion object {
+        private var INSTANCE: MainApplication? = null
+
+        @JvmStatic
+        fun get(): MainApplication =
+            INSTANCE ?: throw NullPointerException("App INSTANCE must not be null")
     }
 }

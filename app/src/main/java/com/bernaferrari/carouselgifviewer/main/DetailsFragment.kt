@@ -5,7 +5,6 @@ import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.EpoxyModel
-import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.base.mvrx.MvRxEpoxyController
 import com.bernaferrari.base.mvrx.simpleController
@@ -21,8 +20,7 @@ import io.reactivex.rxkotlin.plusAssign
 
 class DetailsFragment : BaseSearchFragment() {
 
-    private val viewModel: ViewModelDictionary by activityViewModel()
-//    @Inject lateinit var detailsViewModelFactory: ViewModelDictionary.Factory
+    private val viewModel: DictViewModel by activityViewModel()
 
     private var numOfColumns = 2
 
@@ -44,14 +42,14 @@ class DetailsFragment : BaseSearchFragment() {
 
     override fun epoxyController(): MvRxEpoxyController = simpleController(viewModel) { state ->
 
-        if (state.items is Loading) {
+        if (state.isLoading) {
             loadingRow {
                 this.id("loading")
                 this.spanSizeOverride(fullLineSpan)
             }
         }
 
-        if (state.items()?.filteredList?.isEmpty() == true) {
+        if (state.filteredList.isEmpty()) {
             emptyContent {
                 this.id("empty")
                 this.spanSizeOverride(fullLineSpan)
@@ -59,7 +57,7 @@ class DetailsFragment : BaseSearchFragment() {
             }
         }
 
-        state.items()?.filteredList?.forEach {
+        state.filteredList.forEach {
             GifDetailsBindingModel_()
                 .id(it.gifId)
                 .gifId(it.gifId)
@@ -87,8 +85,8 @@ class DetailsFragment : BaseSearchFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        // already starts a search with the text on search bar
-//        // if empty, nothing changes.
+        // already starts a search with the text on search bar
+        // if empty, nothing changes.
         viewModel.filterRelay.accept(getInputText())
 
         disposableManager += viewModel.maxListSize.observeOn(AndroidSchedulers.mainThread())

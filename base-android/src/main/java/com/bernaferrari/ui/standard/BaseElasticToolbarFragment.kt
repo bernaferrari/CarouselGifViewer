@@ -9,7 +9,7 @@ import com.bernaferrari.ui.R
 import com.bernaferrari.ui.widgets.ElasticDragDismissFrameLayout
 import kotlinx.android.synthetic.main.frag_elastic_search.*
 
-abstract class BaseElasticStandardFragment : BaseStandardFragment() {
+abstract class BaseElasticToolbarFragment : BaseToolbarFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
