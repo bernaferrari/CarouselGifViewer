@@ -2,17 +2,13 @@ package com.bernaferrari.dict.main
 
 import android.app.Activity
 import com.bernaferrari.dict.data.DatabaseDataSource
-import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
 import dagger.Provides
 import javax.inject.Scope
 
 fun DictActivity.inject() {
-    DaggerAboutComponent.builder()
-        .activity(this)
-        .build()
-        .inject(this)
+    DaggerAboutComponent.create().inject(this)
 }
 
 
@@ -42,15 +38,6 @@ interface BaseFragmentComponent<T : Activity> : BaseComponent<T>
 @FeatureScope
 interface AboutComponent :
     BaseFragmentComponent<DictActivity> {
-
-    @Component.Builder
-    interface Builder {
-
-        fun build(): AboutComponent
-
-        @BindsInstance
-        fun activity(activity: DictActivity): Builder
-    }
 
     fun dictRepository(): DatabaseDataSource
 }

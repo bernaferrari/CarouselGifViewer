@@ -111,17 +111,6 @@
                 android:padding="@dimen/avatar_margin"
                 app:srcCompat="@drawable/ic_info" />
 
-            <ImageView
-                android:id="@+id/shareContent"
-                style="@style/ClickableImageView"
-                android:layout_width="@dimen/avatar_bounds"
-                android:layout_height="@dimen/avatar_bounds"
-                android:layout_gravity="center"
-                android:layout_marginStart="@dimen/avatar_margin"
-                android:layout_marginEnd="@dimen/avatar_margin"
-                android:padding="@dimen/avatar_margin"
-                app:srcCompat="@drawable/ic_share" />
-
             <TextView
                 android:id="@+id/titleContent"
                 android:layout_width="0dp"
@@ -132,6 +121,17 @@
                 android:textAppearance="@style/TextAppearance.DialogTitle"
                 android:textColor="@color/FontStrong"
                 tools:text="Dicionário" />
+
+            <ImageView
+                android:id="@+id/shareContent"
+                style="@style/ClickableImageView"
+                android:layout_width="@dimen/avatar_bounds"
+                android:layout_height="@dimen/avatar_bounds"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/avatar_margin"
+                android:layout_marginEnd="@dimen/avatar_margin"
+                android:padding="@dimen/avatar_margin"
+                app:srcCompat="@drawable/ic_share" />
 
         </LinearLayout>
 
