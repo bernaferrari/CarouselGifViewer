@@ -1,8 +1,6 @@
 package com.bernaferrari.carouselgifviewer
 
 import android.app.Application
-import com.bernaferrari.carouselgifviewer.core.DaggerSingletonComponent
-import com.bernaferrari.carouselgifviewer.core.SingletonComponent
 import com.devbrackets.android.exomedia.ExoMedia
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSourceFactory
 import com.google.android.exoplayer2.upstream.DataSource
@@ -21,15 +19,8 @@ import java.io.File
  */
 class MainApplication : Application() {
 
-    lateinit var component: SingletonComponent
-
     override fun onCreate() {
         super.onCreate()
-        INSTANCE = this
-
-        component = DaggerSingletonComponent.builder()
-            .application(this)
-            .build()
 
         Logger.addLogAdapter(object : AndroidLogAdapter() {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
@@ -72,13 +63,5 @@ class MainApplication : Application() {
                         ?: throw NullPointerException("Expression 'instance' must not be null")
             }
         })
-    }
-
-    companion object {
-        private var INSTANCE: MainApplication? = null
-
-        @JvmStatic
-        fun get(): MainApplication =
-            INSTANCE ?: throw NullPointerException("App INSTANCE must not be null")
     }
 }

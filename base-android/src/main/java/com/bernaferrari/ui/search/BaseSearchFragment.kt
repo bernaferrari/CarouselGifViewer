@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import com.airbnb.epoxy.EpoxyRecyclerView
 import com.bernaferrari.base.misc.normalizeString
 import com.bernaferrari.base.misc.onTextChanged
@@ -28,6 +29,8 @@ abstract class BaseSearchFragment : SharedBaseFrag(), CoroutineScope {
 
     open val showKeyboardWhenLoaded = true
 
+    open val sidePadding = 0
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -45,6 +48,8 @@ abstract class BaseSearchFragment : SharedBaseFrag(), CoroutineScope {
             val raiseTitleBar = dy > 0 || recycler.computeVerticalScrollOffset() != 0
             title_bar?.isActivated = raiseTitleBar // animated via a StateListAnimator
         }
+
+        recycler?.updatePadding(left = sidePadding, right = sidePadding)
 
         toolbarMenu.isVisible = showMenu
 

@@ -46,7 +46,7 @@ object Libs {
     val discreteScrollView = "com.yarolegovich:discrete-scrollview:1.4.9"
 
     object Google {
-        val material = "com.google.android.material:material:1.1.0-alpha04"
+        val material = "com.google.android.material:material:1.1.0-alpha05"
         val firebaseCore = "com.google.firebase:firebase-core:16.0.7"
         val crashlytics = "com.crashlytics.sdk.android:crashlytics:2.9.9"
         val firebaseFirestore = "com.google.firebase:firebase-firestore:17.1.5"

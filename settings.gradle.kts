@@ -1,1 +1,1 @@
-include(":app", ":base", "base-android")
+include(":app", ":dict", ":base", "base-android")

@@ -59,6 +59,10 @@ fun hideKeyboardWhenNecessary(recyclerView: RecyclerView?, editText: EditText) {
 
 private fun InputMethodManager.hideKeyboard(editText: EditText) {
     this.hideSoftInputFromWindow(editText.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+
+    editText.isFocusable = false
+    editText.isFocusableInTouchMode = true
+
     if (editText.text.isEmpty()) {
         // loose the focus when scrolling and the text is empty, this way the
         // cursor will be hidden.

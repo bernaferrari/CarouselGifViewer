@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@id/newFragment">
+    app:startDestination="@id/secondMainActivity">
 
-    <fragment
-        android:id="@+id/newFragment"
-        android:name="com.bernaferrari.carouselgifviewer.main.MainFragment"
-        android:label="NewFragment"
-        tools:layout="@layout/gif_frag_main" />
+    <activity
+        android:id="@+id/secondMainActivity"
+        android:name="com.bernaferrari.dict.main.DictActivity"
+        android:label="SecondMainActivity" />
 
 </navigation>

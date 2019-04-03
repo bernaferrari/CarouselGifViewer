@@ -5,9 +5,9 @@
     android:id="@+id/baseContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
     android:clickable="true"
     android:elevation="@dimen/z_drawer"
-    android:focusable="true"
     android:orientation="vertical">
 
     <androidx.constraintlayout.widget.ConstraintLayout

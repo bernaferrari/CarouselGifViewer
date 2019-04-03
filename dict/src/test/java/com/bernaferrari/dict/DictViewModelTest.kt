@@ -2,7 +2,6 @@ package com.bernaferrari.carouselgifviewer
 
 import com.airbnb.mvrx.test.MvRxTestRule
 import com.airbnb.mvrx.withState
-
 import com.bernaferrari.dict.data.DictDataSource
 import com.bernaferrari.dict.data.GifItem
 import com.bernaferrari.dict.main.DictState
