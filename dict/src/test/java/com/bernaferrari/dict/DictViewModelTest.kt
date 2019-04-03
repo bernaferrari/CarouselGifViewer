@@ -1,4 +1,4 @@
-package com.bernaferrari.carouselgifviewer
+package com.bernaferrari.dict
 
 import com.airbnb.mvrx.test.MvRxTestRule
 import com.airbnb.mvrx.withState
@@ -12,6 +12,9 @@ import org.junit.ClassRule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 
+/**
+ * Test the DictViewModel.
+ */
 class DictViewModelTest {
 
     companion object {
@@ -58,7 +61,7 @@ class DictViewModelTest {
     }
 
 
-    class FakeDictRepository : DictDataSource {
+    private class FakeDictRepository : DictDataSource {
         override fun getItems(): Observable<List<GifItem>> = Observable.just(
             listOf(
                 GifItem("DeliriousBitterIcelandicsheepdog", "Amém"),

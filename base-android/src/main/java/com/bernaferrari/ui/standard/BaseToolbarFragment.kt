@@ -13,6 +13,9 @@ import kotlinx.android.synthetic.main.frag_standard.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 
+/**
+ * Simple fragment with a toolbar and a recyclerview.
+ */
 abstract class BaseToolbarFragment : SharedBaseFrag(), CoroutineScope {
 
     override val recyclerView: EpoxyRecyclerView by lazy { recycler }

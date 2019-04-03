@@ -10,8 +10,12 @@ import android.widget.EditText
 import androidx.core.content.getSystemService
 import androidx.recyclerview.widget.RecyclerView
 import com.bernaferrari.base.misc.onEditorAction
+import com.bernaferrari.base.view.onKey
 import com.bernaferrari.base.view.onScroll
 
+/**
+ * Automatically hide KeyBoard when app is being scrolled down.
+ */
 fun hideKeyboardWhenNecessary(recyclerView: RecyclerView?, editText: EditText) {
 
     val inputMethodManager by lazy {

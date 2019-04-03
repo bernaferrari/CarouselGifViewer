@@ -10,7 +10,9 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.dict.BuildConfig.VERSION_NAME
 import com.bernaferrari.dict.R
 
-// inspired from mnml
+/**
+ * Simple dialog with contact info.
+ */
 class AboutDialog : DialogFragment() {
 
     companion object {

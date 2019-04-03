@@ -21,6 +21,9 @@ import kotlinx.android.synthetic.main.frag_search.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 
+/**
+ * Simple fragment with a search box, a toolbar and a recyclerview.
+ */
 abstract class BaseSearchFragment : SharedBaseFrag(), CoroutineScope {
 
     override val recyclerView: EpoxyRecyclerView by lazy { recycler }

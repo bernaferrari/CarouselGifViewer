@@ -11,6 +11,10 @@ import com.airbnb.epoxy.EpoxyRecyclerView
 import com.airbnb.mvrx.MvRxView
 import com.airbnb.mvrx.MvRxViewModelStore
 
+/**
+ * Really basic fragment, inspired from TiVi, with a lazy RecyclerView and most MvRx methods,
+ * to reduce overall boilerplate.
+ */
 abstract class TiviMvRxFragment : Fragment(), MvRxView {
 
     abstract val recyclerView: EpoxyRecyclerView
@@ -21,6 +25,7 @@ abstract class TiviMvRxFragment : Fragment(), MvRxView {
 
     abstract fun epoxyController(): EpoxyController
 
+    /** Define the layoutManager to be used, by default Linear */
     open fun layoutManager(): RecyclerView.LayoutManager = LinearLayoutManager(context)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

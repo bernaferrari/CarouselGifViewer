@@ -9,6 +9,9 @@ import com.bernaferrari.ui.R
 import com.bernaferrari.ui.widgets.ElasticDragDismissFrameLayout
 import kotlinx.android.synthetic.main.frag_elastic_search.*
 
+/**
+ * BaseToolbarFragment with a Elastic behavior (user can scroll beyond top/bottom to dismiss it).
+ */
 abstract class BaseElasticToolbarFragment : BaseToolbarFragment() {
 
     override fun onCreateView(
