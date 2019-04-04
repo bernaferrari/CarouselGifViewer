@@ -22,8 +22,6 @@ class DictViewModel(
     private val dictRepository: DictDataSource
 ) : MvRxViewModel<DictState>(initialState) {
 
-    val closeRelay = PublishRelay.create<Unit>()
-
     var itemSelectedRelay = PublishRelay.create<Int>()
 
     val idSelected = PublishRelay.create<String>()

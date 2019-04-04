@@ -36,11 +36,7 @@ interface BaseFragmentComponent<T : Activity> : BaseComponent<T>
  */
 @Component(modules = [DictModule::class])
 @FeatureScope
-interface AboutComponent :
-    BaseFragmentComponent<DictActivity> {
-
-    fun dictRepository(): DatabaseDataSource
-}
+interface AboutComponent : BaseFragmentComponent<DictActivity>
 
 @Module
 class DictModule {

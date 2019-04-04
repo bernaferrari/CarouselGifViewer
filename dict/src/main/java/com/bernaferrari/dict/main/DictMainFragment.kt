@@ -2,6 +2,7 @@ package com.bernaferrari.dict.main
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -23,8 +24,8 @@ import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.gif_frag_main.*
 import java.util.concurrent.TimeUnit
 
-class MainFragment : BaseMainFragment(),
-    DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
+class DictMainFragment : DictBaseMainFragment(),
+    DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder>, OnBackPressedCallback {
 
     private val viewModel: DictViewModel by activityViewModel()
 
@@ -71,10 +72,6 @@ class MainFragment : BaseMainFragment(),
             true
         }
 
-        disposableManager += viewModel.closeRelay
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { bts.state = STATE_COLLAPSED }
-
         viewModel.selectSubscribe(DictState::isLoading) {
             itemsProgress.isVisible = it
         }
@@ -111,6 +108,8 @@ class MainFragment : BaseMainFragment(),
         currentIdSelected = item.gifId
 
         viewModel.itemSelectedRelay.accept(adapterPosition)
+
+        this.activity?.addOnBackPressedCallback(this, this)
     }
 
     override fun onStart() {
@@ -121,6 +120,16 @@ class MainFragment : BaseMainFragment(),
     override fun onStop() {
         video_view.pause()
         super.onStop()
+    }
+
+    override fun handleOnBackPressed(): Boolean {
+        val bts = BottomSheetBehavior.from(bottomSheet)
+        return if (bts.state != STATE_COLLAPSED) {
+            bts.state = STATE_COLLAPSED
+            true
+        } else {
+            false
+        }
     }
 
     /*

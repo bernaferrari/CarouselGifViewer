@@ -37,10 +37,6 @@ class DetailsFragment : BaseSearchFragment() {
         viewModel.filterRelay.accept(searchText)
     }
 
-    override fun dismiss() {
-        requireActivity().onBackPressed()
-    }
-
     override val showKeyboardWhenLoaded = false
 
     override val sidePadding by lazy { 8.toDp(resources) }

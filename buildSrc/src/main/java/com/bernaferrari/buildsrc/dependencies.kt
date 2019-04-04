@@ -33,10 +33,6 @@ object Libs {
 
     val stetho = "com.facebook.stetho:stetho:1.5.0"
 
-    val tmdbJava = "com.uwetrottmann.tmdb2:tmdb-java:2.0.1"
-
-    val appauth = "net.openid:appauth:0.7.1"
-
     val junit = "junit:junit:4.12"
     val robolectric = "org.robolectric:robolectric:4.2"
     val mockitoKotlin = "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"

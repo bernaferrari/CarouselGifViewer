@@ -144,25 +144,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card"
-            android:layout_width="280dp"
-            android:layout_height="280dp"
-            android:visibility="gone"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="0dp"
-            app:layout_constraintBottom_toBottomOf="@+id/recyclerDiscrete"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/recyclerDiscrete"
-            app:layout_constraintTop_toTopOf="@+id/recyclerDiscrete">
-
-            <com.devbrackets.android.exomedia.ui.widget.VideoView
-                android:id="@+id/video_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop" />
-        </com.google.android.material.card.MaterialCardView>
-
         <com.yarolegovich.discretescrollview.DiscreteScrollView
             android:id="@+id/recyclerDiscrete"
             android:layout_width="match_parent"
@@ -172,6 +153,26 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_bar"
             tools:listitem="@layout/view_holder_gif_main_carousel" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/recyclerDiscrete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/recyclerDiscrete"
+            app:layout_constraintTop_toTopOf="@+id/recyclerDiscrete">
+
+            <com.devbrackets.android.exomedia.ui.widget.VideoView
+                android:id="@+id/video_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/md_red_500"
+                android:scaleType="centerCrop" />
+        </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

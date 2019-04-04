@@ -69,6 +69,7 @@ class BottomSheetConfig(
         frag_behavior?.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_HEADER_MAX)
         header_behavior?.alpha = offsetToAlpha(slideOffset, ALPHA_CHANGEOVER, ALPHA_DESC_MAX)
 
+        header_behavior?.isInvisible = header_behavior?.alpha == 0f
         frag_behavior?.isInvisible = frag_behavior?.alpha == 0f
     }
 

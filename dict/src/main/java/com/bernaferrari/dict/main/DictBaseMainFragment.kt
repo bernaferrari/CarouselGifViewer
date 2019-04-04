@@ -19,7 +19,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.gif_frag_main.*
 
-abstract class BaseMainFragment : BaseMvRxFragment() {
+abstract class DictBaseMainFragment : BaseMvRxFragment() {
 
     private val epoxyController by lazy { epoxyController() }
 
