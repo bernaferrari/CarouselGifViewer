@@ -13,7 +13,7 @@
         android:theme="@style/AppTheme">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.bernaferrari.dict.main.DictActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing">
 
