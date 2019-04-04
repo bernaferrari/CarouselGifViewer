@@ -63,7 +63,7 @@ class DetailsFragment : BaseSearchFragment() {
                 .id(it.gifId)
                 .gifId(it.gifId)
                 .title(it.title)
-                .query(viewModel.filterRelay.value)
+                .query(state.filterQuery)
                 .onClick { _, _, _, position ->
                     viewModel.idSelected.accept(it.gifId)
                 }

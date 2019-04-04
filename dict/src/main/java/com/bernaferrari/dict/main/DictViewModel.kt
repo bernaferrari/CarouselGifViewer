@@ -14,6 +14,7 @@ import io.reactivex.rxkotlin.Observables
 data class DictState(
     val fullList: List<GifItem> = emptyList(),
     val filteredList: List<GifItem> = emptyList(),
+    val filterQuery: String = "",
     val isLoading: Boolean = true
 ) : MvRxState
 
@@ -42,7 +43,7 @@ class DictViewModel(
         Observables.combineLatest(
             dictRepository.getItems(),
             filterRelay
-        ) { list, filter ->
+        ) { list, query ->
 
             maxListSize.accept(list.size)
             fullList = list
@@ -50,17 +51,18 @@ class DictViewModel(
             // get the string without special characters and filter the list.
             // If the filter is not blank, it will filter the list.
             // If it is blank, it will return the original list.
-            val pattern = filter.normalizeString()
+            val pattern = query.normalizeString()
 
-            val filtered = list.takeIf { filter.isNotBlank() }
+            val filteredList = list.takeIf { query.isNotBlank() }
                 ?.filter { pattern in it.title.normalizeString() }
                     ?: list
 
-            DictState(list, filtered)
+            DictState(list, filteredList, query)
         }.execute {
             copy(
                 fullList = it()?.fullList ?: emptyList(),
                 filteredList = it()?.filteredList ?: emptyList(),
+                filterQuery = it()?.filterQuery ?: "",
                 isLoading = (it.invoke() == null) || (it()?.fullList?.isEmpty() == true)
             )
         }
