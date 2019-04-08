@@ -1,24 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.bernaferrari.dict">
 
-    <application
-        android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-
+    <application>
         <activity
             android:name="com.bernaferrari.dict.main.DictActivity"
-            android:windowSoftInputMode="adjustNothing">
+            android:windowSoftInputMode="adjustNothing"
+            android:theme="@style/AppTheme">
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
         </activity>
-
     </application>
 
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

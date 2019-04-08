@@ -26,8 +26,11 @@ object Libs {
     val logger = "com.orhanobut:logger:2.2.0"
     val okHttp = "com.squareup.okhttp3:okhttp:3.14.0"
 
+    val notify = "io.karn:notify:1.2.1"
+    val alerter = "com.tapadoo.android:alerter:4.0.2"
     val rxLint = "nl.littlerobots.rxlint:rxlint:1.7.3"
     val jsoup = "org.jsoup:jsoup:1.11.3"
+    val timeAgo = "com.github.marlonlom:timeago:4.0.1"
 
     val timber = "com.jakewharton.timber:timber:4.7.1"
 
@@ -105,7 +108,7 @@ object Libs {
 
         val preference = "androidx.preference:preference:1.1.0-alpha04"
 
-        val constraintlayout = "androidx.constraintlayout:constraintlayout:2.0.0-alpha3"
+        val constraintlayout = "androidx.constraintlayout:constraintlayout:2.0.0-alpha4"
 
         val coreKtx = "androidx.core:core-ktx:1.0.1"
 
@@ -128,6 +131,8 @@ object Libs {
         object Work {
             private const val version = "2.0.0"
             val runtimeKtx = "androidx.work:work-runtime-ktx:$version"
+            val rxJava = "androidx.work:work-rxjava2:$version"
+            val testing = "androidx.work:work-testing:$version"
         }
     }
 
@@ -139,8 +144,14 @@ object Libs {
         val rxkPrefs = "com.afollestad:rxkprefs:1.2.5"
     }
 
+    object Komprehensions {
+        private const val version = "1.3.0"
+        val stdLib = "com.github.pakoito.Komprehensions:komprehensions:$version"
+        val rxJava = "com.github.pakoito.Komprehensions:komprehensions-rx2:$version"
+    }
+
     object Dagger {
-        private const val version = "2.21"
+        private const val version = "2.22"
         val dagger = "com.google.dagger:dagger:$version"
         val androidSupport = "com.google.dagger:dagger-android-support:$version"
         val compiler = "com.google.dagger:dagger-compiler:$version"
@@ -186,7 +197,7 @@ object Libs {
     }
 
     object AssistedInject {
-        private const val version = "0.3.2"
+        private const val version = "0.4.0"
         val annotationDagger2 = "com.squareup.inject:assisted-inject-annotations-dagger2:$version"
         val processorDagger2 = "com.squareup.inject:assisted-inject-processor-dagger2:$version"
     }

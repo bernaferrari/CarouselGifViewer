@@ -48,9 +48,7 @@ class DetailsFragment : BaseSearchFragment() {
                 this.id("loading")
                 this.spanSizeOverride(fullLineSpan)
             }
-        }
-
-        if (state.filteredList.isEmpty()) {
+        } else if (state.filteredList.isEmpty()) {
             emptyContent {
                 this.id("empty")
                 this.spanSizeOverride(fullLineSpan)
