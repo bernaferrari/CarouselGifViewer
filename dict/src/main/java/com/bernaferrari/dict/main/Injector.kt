@@ -2,6 +2,7 @@ package com.bernaferrari.dict.main
 
 import android.app.Activity
 import com.bernaferrari.dict.data.DatabaseDataSource
+import com.bernaferrari.dict.data.DictDataSource
 import dagger.Component
 import dagger.Module
 import dagger.Provides
@@ -42,6 +43,6 @@ interface AboutComponent : BaseFragmentComponent<DictActivity>
 class DictModule {
 
     @Provides
-    fun provideDictRepository() = DatabaseDataSource()
+    fun provideDictRepository(): DictDataSource = DatabaseDataSource()
 
 }

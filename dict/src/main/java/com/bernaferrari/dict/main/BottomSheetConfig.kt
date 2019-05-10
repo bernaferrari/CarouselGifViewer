@@ -1,19 +1,21 @@
 package com.bernaferrari.dict.main
 
-import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.doOnLayout
 import androidx.core.view.isInvisible
+import androidx.fragment.app.FragmentActivity
 import com.bernaferrari.base.misc.hideKeyboard
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 class BottomSheetConfig(
-    activity: Activity?,
+    activity: FragmentActivity?,
     private val bottomSheet: FrameLayout,
     private val frag_behavior: ViewGroup?,
-    private val header_behavior: ViewGroup?
+    private val header_behavior: ViewGroup?,
+    private val callback: OnBackPressedCallback
 ) {
 
     companion object {
@@ -30,7 +32,9 @@ class BottomSheetConfig(
     }
 
     private val bottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
-        override fun onStateChanged(bottomSheet: View, newState: Int) = Unit
+        override fun onStateChanged(bottomSheet: View, newState: Int) {
+            callback.isEnabled = newState == BottomSheetBehavior.STATE_EXPANDED
+        }
 
         override fun onSlide(bottomSheet: View, slideOffset: Float) {
             updateFilterHeadersAlpha(slideOffset)

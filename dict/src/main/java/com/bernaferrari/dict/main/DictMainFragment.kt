@@ -2,7 +2,6 @@ package com.bernaferrari.dict.main
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.OnBackPressedCallback
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
@@ -25,7 +24,7 @@ import kotlinx.android.synthetic.main.gif_frag_main.*
 import java.util.concurrent.TimeUnit
 
 class DictMainFragment : DictBaseMainFragment(),
-    DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder>, OnBackPressedCallback {
+    DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
     private val viewModel: DictViewModel by activityViewModel()
 
@@ -108,8 +107,6 @@ class DictMainFragment : DictBaseMainFragment(),
         currentIdSelected = item.gifId
 
         viewModel.itemSelectedRelay.accept(adapterPosition)
-
-        this.activity?.addOnBackPressedCallback(this, this)
     }
 
     override fun onStart() {
@@ -120,16 +117,6 @@ class DictMainFragment : DictBaseMainFragment(),
     override fun onStop() {
         video_view.pause()
         super.onStop()
-    }
-
-    override fun handleOnBackPressed(): Boolean {
-        val bts = BottomSheetBehavior.from(bottomSheet)
-        return if (bts.state != STATE_COLLAPSED) {
-            bts.state = STATE_COLLAPSED
-            true
-        } else {
-            false
-        }
     }
 
     /*

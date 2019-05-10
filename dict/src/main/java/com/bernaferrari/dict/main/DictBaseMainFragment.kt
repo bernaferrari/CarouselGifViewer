@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +13,7 @@ import com.bernaferrari.base.mvrx.MvRxEpoxyController
 import com.bernaferrari.dict.R
 import com.bernaferrari.dict.core.AboutDialog
 import com.bernaferrari.dict.extensions.getScreenPercentSize
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.orhanobut.logger.Logger
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
@@ -65,7 +67,11 @@ abstract class DictBaseMainFragment : BaseMvRxFragment() {
             }
         })
 
-        BottomSheetConfig(this.activity, bottomSheet, frag_behavior, header_behavior)
+        val callback = requireActivity().onBackPressedDispatcher.addCallback(this, false) {
+            BottomSheetBehavior.from(bottomSheet).state = BottomSheetBehavior.STATE_COLLAPSED
+        }
+
+        BottomSheetConfig(this.activity, bottomSheet, frag_behavior, header_behavior, callback)
             .onViewLoaded()
 
         info.setOnClickListener {

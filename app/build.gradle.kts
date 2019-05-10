@@ -88,6 +88,7 @@ dependencies {
     implementation(Libs.AndroidX.coreKtx)
     implementation(Libs.AndroidX.constraintlayout)
     implementation(Libs.AndroidX.appcompat)
+
     implementation(Libs.AndroidX.recyclerview)
     implementation(Libs.AndroidX.browser)
     implementation(Libs.AndroidX.Lifecycle.extensions)
