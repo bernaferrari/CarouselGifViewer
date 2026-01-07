@@ -163,6 +163,31 @@ fun MainScreen(
                                 )
                             }
                         }
+                        if (listState.isScrollInProgress) {
+                            val previewTitle = uiState.items.getOrNull(bottomSelectedIndex)?.title
+                            if (!previewTitle.isNullOrBlank()) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopCenter)
+                                        .padding(top = 16.dp)
+                                        .width(140.dp)
+                                        .height(140.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.82f),
+                                            shape = RoundedCornerShape(16.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = previewTitle,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     BoxWithConstraints(
