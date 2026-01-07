@@ -1,113 +1,100 @@
-import com.bernaferrari.buildsrc.Libs
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-kapt")
-    id("kotlin-android-extensions")
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
-androidExtensions {
-    isExperimental = true
+kotlin {
+    androidTarget {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
+
+    sourceSets {
+        androidMain.dependencies {
+            implementation(libs.androidx.compose.ui.tooling.preview)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
+            implementation(libs.media3.exoplayer)
+            implementation(libs.media3.ui)
+            implementation(libs.kotlinx.coroutines.android)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+        }
+        commonMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
+
+            implementation(libs.navigation.compose)
+            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.material.icons.core)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation(libs.coil.compose)
+
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose.viewmodel)
+
+            implementation(libs.kotlinx.coroutines.core)
+
+            implementation(libs.mediaplayer.kmp)
+        }
+    }
 }
 
 android {
-    compileSdkVersion(28)
+    namespace = "com.bernaferrari.carouselgifviewer"
+    compileSdk = 35
+
     defaultConfig {
         applicationId = "com.bernaferrari.carouselgifviewer"
-        minSdkVersion(21)
-        targetSdkVersion(28)
-        versionCode = 2
-        versionName = "2.0"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
     buildTypes {
-        named("release") {
-            isMinifyEnabled = true
-            setProguardFiles(
-                listOf(
-                    getDefaultProguardFile("proguard-android-optimize.txt"),
-                    "proguard-rules.pro"
-                )
-            )
+        getByName("release") {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-
-    dataBinding.isEnabled = true
 }
 
 dependencies {
-
-    implementation(project(":base"))
-    implementation(project(":base-android"))
-    implementation(project(":dict"))
-
-
-    implementation(Libs.Kotlin.stdlib)
-    implementation(Libs.Coroutines.core)
-    implementation(Libs.Coroutines.android)
-
-    // Dagger
-    implementation(Libs.Dagger.dagger)
-    kapt(Libs.Dagger.compiler)
-
-    implementation(Libs.Dagger.androidSupport)
-    kapt(Libs.Dagger.androidProcessor)
-
-    compileOnly(Libs.AssistedInject.annotationDagger2)
-    kapt(Libs.AssistedInject.processorDagger2)
-
-
-    // RX
-    implementation(Libs.RxJava.rxJava)
-    implementation(Libs.RxJava.rxAndroid)
-    implementation(Libs.RxJava.rxKotlin)
-    implementation(Libs.RxJava.rxRelay)
-
-    // Glide
-    implementation(Libs.Glide.glide)
-    kapt(Libs.Glide.compiler)
-
-    // RecyclerView
-    implementation(Libs.discreteScrollView)
-
-    // Epoxy
-    implementation(Libs.Epoxy.epoxy)
-    implementation(Libs.Epoxy.dataBinding)
-    kapt(Libs.Epoxy.processor)
-
-    implementation(Libs.MvRx.main)
-    testImplementation(Libs.MvRx.testing)
-
-
-    // Google
-    implementation(Libs.Google.material)
-    implementation(Libs.AndroidX.coreKtx)
-    implementation(Libs.AndroidX.constraintlayout)
-    implementation(Libs.AndroidX.appcompat)
-
-    implementation(Libs.AndroidX.recyclerview)
-    implementation(Libs.AndroidX.browser)
-    implementation(Libs.AndroidX.Lifecycle.extensions)
-
-    implementation(Libs.AndroidX.Navigation.navigationUi)
-    implementation(Libs.AndroidX.Navigation.navigationFragment)
-
-    implementation(Libs.materialDialogs)
-    implementation(Libs.logger)
-    implementation(Libs.okHttp)
-
-
-    // UI
-    implementation("me.zhanghai.android.materialprogressbar:library:1.6.1")
-
-
-    // Player
-    implementation("com.devbrackets.android:exomedia:4.3.0")
-    implementation("com.google.android.exoplayer:extension-okhttp:2.9.5")
-
-    testImplementation("junit:junit:4.12")
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

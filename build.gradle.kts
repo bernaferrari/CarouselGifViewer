@@ -1,23 +1,7 @@
-buildscript {
-
-    repositories {
-        google()
-        jcenter()
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:3.5.0-beta01")
-        classpath(kotlin("gradle-plugin", version = "1.3.31"))
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        maven("https://jitpack.io")
-    }
-}
-
-tasks.register<Delete>("clean").configure {
-    delete(rootProject.buildDir)
+plugins {
+    alias(libs.plugins.androidApplication) apply false
+    alias(libs.plugins.composeCompiler) apply false
+    alias(libs.plugins.composeMultiplatform) apply false
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinxSerialization) apply false
 }
