@@ -6,13 +6,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.interop.UIKitView
-import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.ui.ExperimentalComposeUiApi
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerViewController
-import platform.AVFoundation.play
 import platform.Foundation.NSURL
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
+import platform.UIKit.UIApplicationDidBecomeActiveNotification
+import platform.UIKit.UIApplicationWillResignActiveNotification
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -27,8 +29,25 @@ actual fun KmpVideoPlayer(
     }
 
     DisposableEffect(Unit) {
+        val center = NSNotificationCenter.defaultCenter
+        val willResign = center.addObserverForName(
+            name = UIApplicationWillResignActiveNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ ->
+            player.pause()
+        }
+        val didBecome = center.addObserverForName(
+            name = UIApplicationDidBecomeActiveNotification,
+            `object` = null,
+            queue = NSOperationQueue.mainQueue
+        ) { _ ->
+            player.play()
+        }
         player.play()
         onDispose {
+            center.removeObserver(willResign)
+            center.removeObserver(didBecome)
             player.pause()
         }
     }

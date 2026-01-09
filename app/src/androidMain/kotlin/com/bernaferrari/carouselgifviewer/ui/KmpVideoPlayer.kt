@@ -6,6 +6,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -20,6 +23,7 @@ actual fun KmpVideoPlayer(
     modifier: Modifier
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -31,8 +35,24 @@ actual fun KmpVideoPlayer(
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner, exoPlayer) {
+        val observer = object : DefaultLifecycleObserver {
+            override fun onPause(owner: LifecycleOwner) {
+                exoPlayer.pause()
+            }
+
+            override fun onStop(owner: LifecycleOwner) {
+                exoPlayer.pause()
+            }
+
+            override fun onResume(owner: LifecycleOwner) {
+                exoPlayer.playWhenReady = true
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
             exoPlayer.release()
         }
     }
