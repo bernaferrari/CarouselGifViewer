@@ -34,6 +34,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.media3.exoplayer)
+            implementation(libs.media3.datasource)
             implementation(libs.media3.ui)
             implementation(libs.kotlinx.coroutines.android)
         }

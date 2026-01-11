@@ -1,22 +1,77 @@
 package com.bernaferrari.carouselgifviewer.ui
 
+import android.content.Context
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.annotation.OptIn
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.compose.ui.viewinterop.AndroidView
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import java.io.File
 
+/**
+ * Singleton cache manager for video caching
+ */
+@OptIn(UnstableApi::class)
+object VideoCacheManager {
+    private var cache: SimpleCache? = null
+    private const val CACHE_SIZE_BYTES = 100L * 1024L * 1024L // 100MB
+    
+    @Synchronized
+    fun getCache(context: Context): SimpleCache {
+        if (cache == null) {
+            val cacheDir = File(context.cacheDir, "video_cache")
+            val evictor = LeastRecentlyUsedCacheEvictor(CACHE_SIZE_BYTES)
+            val databaseProvider = StandaloneDatabaseProvider(context)
+            cache = SimpleCache(cacheDir, evictor, databaseProvider)
+        }
+        return cache!!
+    }
+    
+    @Synchronized
+    fun release() {
+        cache?.release()
+        cache = null
+    }
+}
+
+@OptIn(UnstableApi::class)
 @Composable
 actual fun KmpVideoPlayer(
     videoUrl: String,
@@ -24,15 +79,60 @@ actual fun KmpVideoPlayer(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    var isBuffering by remember { mutableStateOf(true) }
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(videoUrl)
-            setMediaItem(mediaItem)
-            prepare()
-            playWhenReady = true
-            repeatMode = Player.REPEAT_MODE_ONE
-        }
+    val exoPlayer = remember(videoUrl) {
+        // Configure load control for smooth buffering
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                /* minBufferMs = */ 15_000,        // Min buffer before playback
+                /* maxBufferMs = */ 50_000,        // Max buffer size
+                /* bufferForPlaybackMs = */ 2_500, // Buffer needed to start
+                /* bufferForPlaybackAfterRebufferMs = */ 5_000
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
+        
+        // Set up caching data source
+        val cache = VideoCacheManager.getCache(context)
+        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+            .setConnectTimeoutMs(15_000)
+            .setReadTimeoutMs(15_000)
+        
+        val upstreamFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
+        
+        val cacheDataSourceFactory = CacheDataSource.Factory()
+            .setCache(cache)
+            .setUpstreamDataSourceFactory(upstreamFactory)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+        
+        val mediaSourceFactory = DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(cacheDataSourceFactory)
+        
+        ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
+            .setMediaSourceFactory(mediaSourceFactory)
+            .build()
+            .apply {
+                val mediaItem = MediaItem.fromUri(videoUrl)
+                setMediaItem(mediaItem)
+                prepare()
+                playWhenReady = true
+                repeatMode = Player.REPEAT_MODE_ONE
+                
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(state: Int) {
+                        isBuffering = state == Player.STATE_BUFFERING
+                    }
+                    
+                    override fun onIsPlayingChanged(playing: Boolean) {
+                        if (playing) {
+                            isBuffering = false
+                        }
+                    }
+                })
+            }
     }
 
     DisposableEffect(lifecycleOwner, exoPlayer) {
@@ -57,17 +157,42 @@ actual fun KmpVideoPlayer(
         }
     }
 
-    AndroidView(
-        factory = { ctx ->
-            PlayerView(ctx).apply {
-                player = exoPlayer
-                useController = false
-                layoutParams = FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
+    Box(modifier = modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { ctx ->
+                PlayerView(ctx).apply {
+                    player = exoPlayer
+                    useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Loading indicator overlay
+        AnimatedVisibility(
+            visible = isBuffering,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(28.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3.dp
                 )
             }
-        },
-        modifier = modifier.fillMaxSize()
-    )
+        }
+    }
 }

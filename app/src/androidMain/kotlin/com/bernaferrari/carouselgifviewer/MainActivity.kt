@@ -4,17 +4,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.remember
-import com.bernaferrari.carouselgifviewer.ui.MainScreen
+import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import com.bernaferrari.carouselgifviewer.data.DatabaseDataSource
 import com.bernaferrari.carouselgifviewer.data.GifRepository
+import com.bernaferrari.carouselgifviewer.ui.MainScreen
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
+import com.bernaferrari.carouselgifviewer.ui.theme.CarouselGifViewerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,10 +23,8 @@ class MainActivity : ComponentActivity() {
             val viewModel = remember {
                 MainViewModel(GifRepository(DatabaseDataSource()))
             }
-            MaterialTheme(
-                colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
-            ) {
-                Surface {
+            CarouselGifViewerTheme {
+                Surface(modifier = Modifier.fillMaxSize()) {
                     MainScreen(
                         viewModel = viewModel,
                         onShareItem = { title, url ->
