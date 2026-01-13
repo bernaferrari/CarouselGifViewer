@@ -50,7 +50,7 @@ import com.bernaferrari.carouselgifviewer.ui.theme.AppColors
 fun GradientCard(
     modifier: Modifier = Modifier,
     gradient: Brush = AppColors.primaryGradient,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = RoundedCornerShape(24.dp), // AppShapes.large
     elevation: Dp = 8.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
@@ -73,7 +73,7 @@ fun GradientCard(
 @Composable
 fun GlassmorphicSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(16.dp), // AppShapes.medium
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.85f),
     borderColor: Color = Color.White.copy(alpha = 0.15f),
     content: @Composable BoxScope.() -> Unit
@@ -159,7 +159,7 @@ fun AnimatedIconButton(
 @Composable
 fun ShimmerBox(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(12.dp)
+    shape: Shape = RoundedCornerShape(8.dp) // AppShapes.small
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
     val shimmerProgress by infiniteTransition.animateFloat(
@@ -266,7 +266,7 @@ fun Modifier.glowEffect(
             Modifier
                 .shadow(
                     elevation = radius,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp), // AppShapes.medium
                     spotColor = color.copy(alpha = 0.6f),
                     ambientColor = color.copy(alpha = 0.3f)
                 )
