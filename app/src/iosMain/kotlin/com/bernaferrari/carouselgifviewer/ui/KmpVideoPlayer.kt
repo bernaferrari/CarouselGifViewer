@@ -12,10 +12,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,7 +58,18 @@ actual fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier
 ) {
-    var isBuffering by remember { mutableStateOf(true) }
+    var isBuffering by remember { mutableStateOf(false) }
+    var showLoading by remember { mutableStateOf(false) }
+    
+    // Only show loading after 250ms delay (skip for cached videos)
+    LaunchedEffect(isBuffering) {
+        if (isBuffering) {
+            delay(250)
+            showLoading = true
+        } else {
+            showLoading = false
+        }
+    }
     
     val player = remember(videoUrl) {
         val url = NSURL.URLWithString(videoUrl)!!
@@ -136,9 +149,9 @@ actual fun KmpVideoPlayer(
             modifier = Modifier.fillMaxSize()
         )
         
-        // Loading indicator overlay
+        // Loading indicator overlay (only shows after 250ms delay)
         AnimatedVisibility(
-            visible = isBuffering,
+            visible = showLoading && isBuffering,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center)

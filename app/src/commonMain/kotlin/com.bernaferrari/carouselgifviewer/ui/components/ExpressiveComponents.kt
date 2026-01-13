@@ -195,7 +195,7 @@ fun ShimmerBox(
  * Premium loading indicator with animated gradient
  */
 @Composable
-fun PremiumLoadingIndicator(
+fun LoadingSpinner(
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "loading")

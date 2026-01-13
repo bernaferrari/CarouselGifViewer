@@ -36,9 +36,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
@@ -82,7 +85,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.carouselgifviewer.data.GifItem
 import com.bernaferrari.carouselgifviewer.ui.components.AnimatedIconButton
 import com.bernaferrari.carouselgifviewer.ui.components.GlassmorphicSurface
-import com.bernaferrari.carouselgifviewer.ui.components.PremiumLoadingIndicator
+import com.bernaferrari.carouselgifviewer.ui.components.LoadingSpinner
 import com.bernaferrari.carouselgifviewer.ui.theme.AppColors
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -311,21 +314,7 @@ fun MainScreen(
                             )
                         }
                     },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                uiState.currentItem?.let { item ->
-                                    onShareItem(item.title, item.shareUrl)
-                                }
-                            }
-                        ) {
-                            Icon(
-                                Icons.Default.Share,
-                                contentDescription = "Share",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
+
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -344,7 +333,7 @@ fun MainScreen(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        PremiumLoadingIndicator(modifier = Modifier.size(56.dp))
+                        LoadingSpinner(modifier = Modifier.size(56.dp))
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "Loading videos...",
@@ -362,21 +351,32 @@ fun MainScreen(
                         ) {
                             HorizontalPager(
                                 state = pagerState,
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                pageSpacing = 4.dp
                             ) { page ->
                                 val item = uiState.items.getOrNull(page) ?: return@HorizontalPager
+                                
+                                // Calculate scale based on distance from current page
+                                val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                                val scale = 0.85f + (1f - abs(pageOffset).coerceIn(0f, 1f)) * 0.15f
 
                                 Box(
-                                    modifier = Modifier.fillMaxSize(),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .graphicsLayer {
+                                            scaleX = scale
+                                            scaleY = scale
+                                            alpha = 0.5f + (1f - abs(pageOffset).coerceIn(0f, 1f)) * 0.5f
+                                        },
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 16.dp, vertical = 12.dp)
                                             .aspectRatio(1f),
                                         shape = RoundedCornerShape(24.dp),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = if (abs(pageOffset) < 0.5f) 12.dp else 4.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                         )
@@ -462,6 +462,61 @@ fun MainScreen(
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Action toolbar below the video
+                        val toolbarAlpha by animateFloatAsState(
+                            targetValue = if (pagerState.isScrollInProgress || listState.isScrollInProgress) 0.4f else 1f,
+                            animationSpec = tween(150),
+                            label = "toolbarAlpha"
+                        )
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .graphicsLayer { alpha = toolbarAlpha },
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            GlassmorphicSurface(
+                                modifier = Modifier,
+                                shape = RoundedCornerShape(24.dp),
+                                backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            // TODO: Toggle favorite
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.FavoriteBorder,
+                                            contentDescription = "Favorite",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            uiState.currentItem?.let { item ->
+                                                onShareItem(item.title, item.shareUrl)
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Share,
+                                            contentDescription = "Share",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     }
                                 }
                             }
@@ -562,6 +617,33 @@ private fun ScrubberItem(
             contentDescription = item.title,
             modifier = Modifier.fillMaxSize()
         )
+        
+        // Title overlay at the bottom
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f)
+                        )
+                    )
+                )
+                .padding(horizontal = 4.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
+        
         // Border inside when centered
         if (isCenter) {
             Box(
