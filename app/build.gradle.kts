@@ -49,7 +49,8 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-            implementation(libs.navigation.compose)
+            implementation(libs.navigation3.ui)
+            implementation(libs.lifecycle.viewmodel.navigation3)
             implementation(libs.lifecycle.runtime.compose)
             implementation(libs.material.icons.core)
 
@@ -65,13 +66,14 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
 
             implementation(libs.mediaplayer.kmp)
+            implementation(libs.datastore.preferences)
         }
     }
 }
 
 android {
     namespace = "com.bernaferrari.carouselgifviewer"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.bernaferrari.carouselgifviewer"

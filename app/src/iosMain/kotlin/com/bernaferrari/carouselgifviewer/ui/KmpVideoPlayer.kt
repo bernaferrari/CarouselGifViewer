@@ -24,22 +24,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
 import kotlinx.cinterop.ExperimentalForeignApi
-import org.jetbrains.compose.ui.ExperimentalComposeUiApi
+import kotlinx.cinterop.cValue
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.AVPlayerLayer
-import platform.AVFoundation.AVPlayerTimeControlStatusPlaying
 import platform.AVFoundation.AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate
 import platform.AVFoundation.addPeriodicTimeObserverForInterval
 import platform.AVFoundation.currentItem
+import platform.AVFoundation.pause
 import platform.AVFoundation.play
 import platform.AVFoundation.removeTimeObserver
 import platform.AVFoundation.seekToTime
 import platform.AVFoundation.timeControlStatus
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.CoreMedia.CMTimeMake
-import platform.CoreMedia.kCMTimeZero
+import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURL
@@ -52,7 +52,7 @@ import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.addObserver
 import platform.Foundation.removeObserver
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun KmpVideoPlayer(
     videoUrl: String,
@@ -74,12 +74,7 @@ actual fun KmpVideoPlayer(
     val player = remember(videoUrl) {
         val url = NSURL.URLWithString(videoUrl)!!
         val playerItem = AVPlayerItem(url)
-        AVPlayer(playerItem).apply {
-            // Configure forward buffer for caching (approximately 100MB worth)
-            // AVPlayer uses preferredForwardBufferDuration in seconds
-            // Assuming ~2MB/s video, 100MB = ~50 seconds of buffer
-            currentItem?.preferredForwardBufferDuration = 50.0
-        }
+        AVPlayer(playerItem)
     }
     
     DisposableEffect(player) {
@@ -100,7 +95,7 @@ actual fun KmpVideoPlayer(
             `object` = player.currentItem,
             queue = NSOperationQueue.mainQueue
         ) { _ ->
-            player.seekToTime(kCMTimeZero)
+            player.seekToTime(CMTimeMakeWithSeconds(0.0, 1000000000))
             player.play()
         }
         
@@ -133,6 +128,7 @@ actual fun KmpVideoPlayer(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
+        @Suppress("DEPRECATION")
         UIKitView(
             factory = {
                 val container = UIView()

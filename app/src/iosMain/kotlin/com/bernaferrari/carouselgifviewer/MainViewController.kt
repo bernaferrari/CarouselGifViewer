@@ -1,26 +1,25 @@
 package com.bernaferrari.carouselgifviewer
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.interop.UIKitViewController
+import androidx.compose.ui.window.ComposeUIViewController
 import com.bernaferrari.carouselgifviewer.data.DatabaseDataSource
 import com.bernaferrari.carouselgifviewer.data.GifRepository
-import com.bernaferrari.carouselgifviewer.ui.MainScreen
+import com.bernaferrari.carouselgifviewer.data.SettingsRepository
+import com.bernaferrari.carouselgifviewer.data.ThemeMode
+import com.bernaferrari.carouselgifviewer.data.createDataStore
+import com.bernaferrari.carouselgifviewer.ui.AppNavigation
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
-import com.bernaferrari.carouselgifviewer.ui.SettingsScreen
+import com.bernaferrari.carouselgifviewer.ui.SettingsViewModel
+import com.bernaferrari.carouselgifviewer.ui.accentColors
+import com.bernaferrari.carouselgifviewer.ui.theme.CarouselGifViewerTheme
 import platform.UIKit.UIViewController
 
-fun MainViewController(): UIViewController {
-    return UIKitViewController {
-        CarouselGifViewerApp()
-    }
+fun MainViewController(): UIViewController = ComposeUIViewController {
+    CarouselGifViewerApp()
 }
 
 @Composable
@@ -28,29 +27,30 @@ fun CarouselGifViewerApp() {
     val viewModel = remember {
         MainViewModel(GifRepository(DatabaseDataSource()))
     }
-    var showSettings by remember { mutableStateOf(false) }
+    val settingsViewModel = remember {
+        SettingsViewModel(SettingsRepository(createDataStore()))
+    }
+    val settings by settingsViewModel.settings.collectAsState()
     
-    MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()
+    val isDarkTheme = when (settings.themeMode) {
+        ThemeMode.System -> isSystemInDarkTheme()
+        ThemeMode.Light -> false
+        ThemeMode.Dark -> true
+        ThemeMode.MaterialYou -> isSystemInDarkTheme()
+    }
+    val accentColor = accentColors.getOrNull(settings.accentColorIndex)?.color
+    
+    CarouselGifViewerTheme(
+        darkTheme = isDarkTheme,
+        accentColor = accentColor
     ) {
-        if (showSettings) {
-            SettingsScreen(
-                onBackClick = { showSettings = false },
-                onClearCache = { /* iOS cache clear */ },
-                onOpenUrl = { url -> openBrowser(url) }
-            )
-        } else {
-            MainScreen(
-                viewModel = viewModel,
-                onShareItem = { title, url ->
-                    shareItem(title, url)
-                },
-                onOpenBrowser = { url ->
-                    openBrowser(url)
-                },
-                onOpenSettings = { showSettings = true }
-            )
-        }
+        AppNavigation(
+            mainViewModel = viewModel,
+            settingsViewModel = settingsViewModel,
+            onShareItem = { title, url -> shareItem(title, url) },
+            onOpenBrowser = { url -> openBrowser(url) },
+            onClearCache = { /* iOS cache clear */ }
+        )
     }
 }
 

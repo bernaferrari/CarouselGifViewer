@@ -234,9 +234,23 @@ val AppShapes = Shapes(
 @Composable
 fun CarouselGifViewerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    accentColor: Color? = null,
+    dynamicColorScheme: androidx.compose.material3.ColorScheme? = null,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val baseColorScheme = dynamicColorScheme 
+        ?: if (darkTheme) DarkColorScheme else LightColorScheme
+    
+    val colorScheme = if (accentColor != null && dynamicColorScheme == null) {
+        baseColorScheme.copy(
+            primary = accentColor,
+            primaryContainer = accentColor.copy(alpha = 0.3f),
+            secondary = accentColor,
+            secondaryContainer = accentColor.copy(alpha = 0.3f)
+        )
+    } else {
+        baseColorScheme
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,

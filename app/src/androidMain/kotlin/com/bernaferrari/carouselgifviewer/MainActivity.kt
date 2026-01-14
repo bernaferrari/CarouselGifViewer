@@ -5,21 +5,27 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import com.bernaferrari.carouselgifviewer.data.DatabaseDataSource
 import com.bernaferrari.carouselgifviewer.data.GifRepository
-import com.bernaferrari.carouselgifviewer.ui.MainScreen
+import com.bernaferrari.carouselgifviewer.data.SettingsRepository
+import com.bernaferrari.carouselgifviewer.data.ThemeMode
+import com.bernaferrari.carouselgifviewer.data.createDataStore
+import com.bernaferrari.carouselgifviewer.ui.AppNavigation
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
-import com.bernaferrari.carouselgifviewer.ui.SettingsScreen
-import com.bernaferrari.carouselgifviewer.ui.KmpVideoPlayer
+import com.bernaferrari.carouselgifviewer.ui.SettingsViewModel
 import com.bernaferrari.carouselgifviewer.ui.VideoCacheManager
+import com.bernaferrari.carouselgifviewer.ui.accentColors
 import com.bernaferrari.carouselgifviewer.ui.theme.CarouselGifViewerTheme
 
 class MainActivity : ComponentActivity() {
@@ -30,28 +36,40 @@ class MainActivity : ComponentActivity() {
             val viewModel = remember {
                 MainViewModel(GifRepository(DatabaseDataSource()))
             }
-            var showSettings by remember { mutableStateOf(false) }
+            val settingsViewModel = remember {
+                SettingsViewModel(SettingsRepository(createDataStore(this@MainActivity)))
+            }
+            val settings by settingsViewModel.settings.collectAsState()
             
-            CarouselGifViewerTheme {
+            val isDarkTheme = when (settings.themeMode) {
+                ThemeMode.System -> isSystemInDarkTheme()
+                ThemeMode.Light -> false
+                ThemeMode.Dark -> true
+                ThemeMode.MaterialYou -> isSystemInDarkTheme()
+            }
+            
+            val useMaterialYou = settings.themeMode == ThemeMode.MaterialYou
+            val dynamicColorScheme = if (useMaterialYou && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (isDarkTheme) dynamicDarkColorScheme(this@MainActivity)
+                else dynamicLightColorScheme(this@MainActivity)
+            } else null
+            
+            val accentColor = if (useMaterialYou) null 
+                else accentColors.getOrNull(settings.accentColorIndex)?.color
+            
+            CarouselGifViewerTheme(
+                darkTheme = isDarkTheme,
+                accentColor = accentColor,
+                dynamicColorScheme = dynamicColorScheme
+            ) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    if (showSettings) {
-                        SettingsScreen(
-                            onBackClick = { showSettings = false },
-                            onClearCache = { clearCache() },
-                            onOpenUrl = { url -> openBrowser(url) }
-                        )
-                    } else {
-                        MainScreen(
-                            viewModel = viewModel,
-                            onShareItem = { title, url ->
-                                shareItem(title, url)
-                            },
-                            onOpenBrowser = { url ->
-                                openBrowser(url)
-                            },
-                            onOpenSettings = { showSettings = true }
-                        )
-                    }
+                    AppNavigation(
+                        mainViewModel = viewModel,
+                        settingsViewModel = settingsViewModel,
+                        onShareItem = { title, url -> shareItem(title, url) },
+                        onOpenBrowser = { url -> openBrowser(url) },
+                        onClearCache = { clearCache() }
+                    )
                 }
             }
         }

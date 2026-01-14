@@ -45,10 +45,10 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Card
@@ -673,33 +673,26 @@ fun MainScreen(
                                 }
                                 
                                 currentItem.verseReference?.let { reference ->
+                                    val bibleComUrl = "https://www.bible.com/bible/1/${formatBibleReference(reference)}"
                                     val annotatedText = buildAnnotatedString {
-                                        pushStringAnnotation(tag = "BIBLE", annotation = reference)
-                                        withStyle(
-                                            style = SpanStyle(
-                                                color = MaterialTheme.colorScheme.primary,
-                                                textDecoration = TextDecoration.Underline,
-                                                fontWeight = FontWeight.Medium
+                                        withLink(
+                                            LinkAnnotation.Clickable(
+                                                tag = "BIBLE",
+                                                linkInteractionListener = { onOpenBrowser(bibleComUrl) }
                                             )
                                         ) {
                                             append(reference)
                                         }
-                                        pop()
                                         append(" →")
                                     }
                                     
-                                    ClickableText(
+                                    Text(
                                         text = annotatedText,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        onClick = { offset ->
-                                            annotatedText.getStringAnnotations(tag = "BIBLE", start = offset, end = offset)
-                                                .firstOrNull()?.let { annotation ->
-                                                    // Convert reference to Bible.com URL format
-                                                    // e.g., "Genesis 1:1" -> "GEN.1.1"
-                                                    val bibleComUrl = "https://www.bible.com/bible/1/${formatBibleReference(annotation.item)}"
-                                                    onOpenBrowser(bibleComUrl)
-                                                }
-                                        }
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            color = MaterialTheme.colorScheme.primary,
+                                            textDecoration = TextDecoration.Underline,
+                                            fontWeight = FontWeight.Medium
+                                        )
                                     )
                                 }
                             }

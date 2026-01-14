@@ -42,10 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,10 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-
-enum class ThemeMode {
-    System, Light, Dark, MaterialYou
-}
+import com.bernaferrari.carouselgifviewer.data.ThemeMode
 
 data class AccentColor(
     val name: String,
@@ -77,13 +72,15 @@ val accentColors = listOf(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
+    viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
     onClearCache: () -> Unit,
     onOpenUrl: (String) -> Unit
 ) {
-    var selectedTheme by remember { mutableStateOf(ThemeMode.System) }
-    var selectedAccent by remember { mutableStateOf(accentColors[0]) }
-    var shaderEffectEnabled by remember { mutableStateOf(false) }
+    val settings by viewModel.settings.collectAsState()
+    val selectedTheme = settings.themeMode
+    val selectedAccent = accentColors.getOrElse(settings.accentColorIndex) { accentColors[0] }
+    val shaderEffectEnabled = settings.shaderEffectEnabled
     
     Scaffold(
         topBar = {
@@ -149,7 +146,7 @@ fun SettingsScreen(
                                         ThemeMode.MaterialYou -> "You"
                                     },
                                     selected = selectedTheme == mode,
-                                    onClick = { selectedTheme = mode },
+                                    onClick = { viewModel.setThemeMode(mode) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -181,11 +178,11 @@ fun SettingsScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            accentColors.forEach { accent ->
+                            accentColors.forEachIndexed { index, accent ->
                                 ColorCircle(
                                     color = accent.color,
                                     selected = selectedAccent == accent,
-                                    onClick = { selectedAccent = accent }
+                                    onClick = { viewModel.setAccentColorIndex(index) }
                                 )
                             }
                         }
@@ -226,7 +223,7 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = shaderEffectEnabled,
-                            onCheckedChange = { shaderEffectEnabled = it },
+                            onCheckedChange = { viewModel.setShaderEffectEnabled(it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
