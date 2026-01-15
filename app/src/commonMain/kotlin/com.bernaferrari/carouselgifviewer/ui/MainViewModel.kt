@@ -11,13 +11,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+enum class FilterCategory {
+    All,
+    Favorites
+}
+
 data class MainUiState(
     val items: List<GifItem> = emptyList(),
     val filteredItems: List<GifItem> = emptyList(),
     val filterQuery: String = "",
     val selectedIndex: Int = 0,
     val isLoading: Boolean = true,
-    val currentItem: GifItem? = null
+    val currentItem: GifItem? = null,
+    val activeFilter: FilterCategory = FilterCategory.All
 )
 
 class MainViewModel(
@@ -27,19 +33,27 @@ class MainViewModel(
     private val _filterQuery = MutableStateFlow("")
     private val _selectedIndex = MutableStateFlow(0)
     private val _isLoading = MutableStateFlow(true)
+    private val _activeFilter = MutableStateFlow(FilterCategory.All)
 
     val uiState: StateFlow<MainUiState> = combine(
         repository.items,
         _filterQuery,
         _selectedIndex,
-        _isLoading
-    ) { items, query, selectedIndex, isLoading ->
+        _isLoading,
+        _activeFilter
+    ) { items, query, selectedIndex, isLoading, activeFilter ->
         val pattern = query.normalizeString()
-        val filteredItems = if (pattern.isBlank()) {
+        var filteredItems = if (pattern.isBlank()) {
             items
         } else {
             items.filter { pattern in it.title.normalizeString() }
         }
+
+        filteredItems = when (activeFilter) {
+            FilterCategory.All -> filteredItems
+            FilterCategory.Favorites -> filteredItems.filter { it.isFavorite }
+        }
+
         val currentItem = items.getOrNull(selectedIndex)
 
         MainUiState(
@@ -48,7 +62,8 @@ class MainViewModel(
             filterQuery = query,
             selectedIndex = selectedIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0)),
             isLoading = isLoading,
-            currentItem = currentItem
+            currentItem = currentItem,
+            activeFilter = activeFilter
         )
     }.stateIn(
         scope = viewModelScope,
@@ -76,6 +91,16 @@ class MainViewModel(
         val index = uiState.value.items.indexOfFirst { it.id == gifId }
         if (index >= 0) {
             _selectedIndex.value = index
+        }
+    }
+
+    fun setActiveFilter(filter: FilterCategory) {
+        _activeFilter.value = filter
+    }
+
+    fun toggleFavorite(id: String) {
+        viewModelScope.launch {
+            repository.toggleFavorite(id)
         }
     }
 }

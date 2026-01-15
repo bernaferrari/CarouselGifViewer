@@ -9,7 +9,7 @@ import org.koin.dsl.module
 
 val dataModule = module {
     single<DictDataSource> { DatabaseDataSource() }
-    single { GifRepository(get()) }
+    single { GifRepository(get(), get()) }
 }
 
 val viewModelModule = module {

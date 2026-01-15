@@ -2,17 +2,29 @@ package com.bernaferrari.carouselgifviewer.data
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class GifRepository(
-    private val dataSource: DictDataSource
+    private val dataSource: DictDataSource,
+    private val settingsRepository: SettingsRepository
 ) {
     private val _filterQuery = MutableStateFlow("")
 
-    val items: Flow<List<GifItem>> = dataSource.getItems()
+    val items: Flow<List<GifItem>> = combine(
+        dataSource.getItems(),
+        settingsRepository.favorites
+    ) { list, favorites ->
+        list.map { item ->
+            item.copy(isFavorite = item.id in favorites)
+        }
+    }
 
-    val filteredItems: Flow<List<GifItem>> = items.map { list ->
-        val pattern = _filterQuery.value.normalizeString()
+    val filteredItems: Flow<List<GifItem>> = combine(
+        items,
+        _filterQuery
+    ) { list, query ->
+        val pattern = query.normalizeString()
         if (pattern.isBlank()) {
             list
         } else {
@@ -26,6 +38,10 @@ class GifRepository(
 
     fun getItemById(gifId: String): Flow<GifItem?> = items.map { list ->
         list.find { it.id == gifId }
+    }
+
+    suspend fun toggleFavorite(id: String) {
+        settingsRepository.toggleFavorite(id)
     }
 }
 

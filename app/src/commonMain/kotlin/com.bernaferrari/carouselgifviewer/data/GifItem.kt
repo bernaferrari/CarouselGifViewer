@@ -8,5 +8,6 @@ data class GifItem(
     val shareUrl: String = videoUrl,
     val description: String? = null,
     val verseReference: String? = null,
-    val verseText: String? = null
+    val verseText: String? = null,
+    val isFavorite: Boolean = false
 )

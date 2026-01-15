@@ -24,11 +24,12 @@ fun MainViewController(): UIViewController = ComposeUIViewController {
 
 @Composable
 fun CarouselGifViewerApp() {
+    val settingsRepository = remember { SettingsRepository(createDataStore()) }
     val viewModel = remember {
-        MainViewModel(GifRepository(DatabaseDataSource()))
+        MainViewModel(GifRepository(DatabaseDataSource(), settingsRepository))
     }
     val settingsViewModel = remember {
-        SettingsViewModel(SettingsRepository(createDataStore()))
+        SettingsViewModel(settingsRepository)
     }
     val settings by settingsViewModel.settings.collectAsState()
     

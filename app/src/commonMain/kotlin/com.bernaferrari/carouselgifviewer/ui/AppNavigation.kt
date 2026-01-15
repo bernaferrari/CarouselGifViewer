@@ -1,6 +1,8 @@
 package com.bernaferrari.carouselgifviewer.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -35,6 +37,7 @@ fun AppNavigation(
     onClearCache: () -> Unit
 ) {
     val backStack = rememberNavBackStack(navConfig, MainRoute)
+    val settings by settingsViewModel.settings.collectAsState()
     
     NavDisplay(
         backStack = backStack,
@@ -44,7 +47,8 @@ fun AppNavigation(
                     viewModel = mainViewModel,
                     onShareItem = onShareItem,
                     onOpenBrowser = onOpenBrowser,
-                    onOpenSettings = { backStack.add(SettingsRoute) }
+                    onOpenSettings = { backStack.add(SettingsRoute) },
+                    shaderEffectEnabled = settings.shaderEffectEnabled
                 )
             }
             

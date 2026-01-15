@@ -1,6 +1,7 @@
 package com.bernaferrari.carouselgifviewer.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import kotlinx.coroutines.launch
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -15,6 +16,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -104,13 +106,28 @@ fun AnimatedIconButton(
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
     pressedBackgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
     shape: Shape = CircleShape,
-    size: Dp = 48.dp
+    size: Dp = 48.dp,
+    nudgeOffsetX: Dp = 0.dp
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    val isHovered by interactionSource.collectIsHoveredAsState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    
+    // Nudge animation state (for click impulse)
+    val nudgeX = remember { androidx.compose.animation.core.Animatable(0f) }
+    
+    // Hover offset (continuously present when hovered)
+    val hoverOffsetPx = with(density) { nudgeOffsetX.toPx() * 0.4f }
+    val animatedHoverOffset by animateFloatAsState(
+        targetValue = if (isHovered) hoverOffsetPx else 0f,
+        animationSpec = tween(200),
+        label = "hoverOffset"
+    )
     
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.88f else 1f,
+        targetValue = if (isPressed) 0.9f else if (isHovered) 1.05f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -119,7 +136,7 @@ fun AnimatedIconButton(
     )
     
     val bgColor by animateColorAsState(
-        targetValue = if (isPressed) pressedBackgroundColor else backgroundColor,
+        targetValue = if (isPressed) pressedBackgroundColor else if (isHovered) backgroundColor.copy(alpha = 1f) else backgroundColor,
         animationSpec = tween(150),
         label = "buttonBgColor"
     )
@@ -129,9 +146,11 @@ fun AnimatedIconButton(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
+                // Combine hover offset (steady) + click nudge (impulse)
+                this.translationX = animatedHoverOffset + nudgeX.value
             }
             .shadow(
-                elevation = if (isPressed) 2.dp else 6.dp,
+                elevation = if (isPressed) 2.dp else if (isHovered) 8.dp else 6.dp,
                 shape = shape,
                 spotColor = AppColors.Purple40.copy(alpha = 0.4f)
             )
@@ -140,7 +159,25 @@ fun AnimatedIconButton(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = onClick
+                onClick = {
+                    scope.launch {
+                        // Launch nudge animation if offset is provided
+                        if (nudgeOffsetX != 0.dp) {
+                            launch {
+                                val targetPx = with(density) { nudgeOffsetX.toPx() }
+                                nudgeX.animateTo(
+                                    targetValue = targetPx,
+                                    animationSpec = tween(100)
+                                )
+                                nudgeX.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                                )
+                            }
+                        }
+                        onClick()
+                    }
+                }
             )
             .padding(12.dp),
         contentAlignment = Alignment.Center

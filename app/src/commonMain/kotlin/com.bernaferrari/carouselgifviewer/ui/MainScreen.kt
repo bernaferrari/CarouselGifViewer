@@ -1,24 +1,33 @@
 package com.bernaferrari.carouselgifviewer.ui
 
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +45,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
@@ -43,27 +53,22 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.NavigationDrawerItem
-import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -78,7 +83,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -86,18 +90,24 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.carouselgifviewer.data.GifItem
 import com.bernaferrari.carouselgifviewer.ui.components.AnimatedIconButton
 import com.bernaferrari.carouselgifviewer.ui.components.GlassmorphicSurface
 import com.bernaferrari.carouselgifviewer.ui.components.LoadingSpinner
-import com.bernaferrari.carouselgifviewer.ui.theme.AppColors
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
+import com.bernaferrari.carouselgifviewer.ui.components.ShaderBackground
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -107,7 +117,8 @@ fun MainScreen(
     viewModel: MainViewModel,
     onShareItem: (String, String) -> Unit,
     onOpenBrowser: (String) -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    shaderEffectEnabled: Boolean = false
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(
@@ -118,8 +129,10 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     var drawerQuery by remember { mutableStateOf("") }
-    val haptic = LocalHapticFeedback.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     var showInfoSheet by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     val centeredScrubberIndex by remember(listState) {
         derivedStateOf {
@@ -135,21 +148,24 @@ fun MainScreen(
     val isUserScrollingScrubber by remember {
         derivedStateOf { listState.isScrollInProgress }
     }
-    
-    // Track who is driving the sync to prevent feedback loops
-    var pagerIsDriving by remember { mutableStateOf(false) }
 
-    // Haptic feedback when centered item changes during scrubbing
+    var pagerIsDriving by remember { mutableStateOf(false) }
     var lastHapticIndex by remember { mutableStateOf(-1) }
-    
-    // SCRUBBER drives PAGER: instant jump while scrubbing (only if pager isn't driving)
+
+    // Close keyboard when drawer closes
+    LaunchedEffect(drawerState.isOpen) {
+        if (!drawerState.isOpen) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }
+    }
+
     LaunchedEffect(centeredScrubberIndex, isUserScrollingScrubber) {
         if (isUserScrollingScrubber && !pagerIsDriving && uiState.items.isNotEmpty()) {
             val target = centeredScrubberIndex.coerceIn(0, uiState.items.lastIndex)
             if (pagerState.currentPage != target) {
                 pagerState.scrollToPage(target)
             }
-            // Trigger haptic when centered item changes
             if (target != lastHapticIndex) {
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 lastHapticIndex = target
@@ -157,7 +173,6 @@ fun MainScreen(
         }
     }
 
-    // PAGER drives SCRUBBER: smooth animation while swiping
     LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
         if (pagerState.isScrollInProgress && uiState.items.isNotEmpty()) {
             pagerIsDriving = true
@@ -168,156 +183,172 @@ fun MainScreen(
         }
     }
 
-    // Update selectedIndex when pager settles (for UI display)
     LaunchedEffect(pagerState.settledPage) {
         if (uiState.items.isNotEmpty()) {
             viewModel.setSelectedIndex(pagerState.settledPage.coerceIn(0, uiState.items.lastIndex))
         }
     }
 
-    // External navigation (arrows, drawer): animate both
     fun navigateTo(index: Int) {
         if (uiState.items.isEmpty()) return
         val target = index.coerceIn(0, uiState.items.lastIndex)
         pagerIsDriving = true
         scope.launch {
             launch { pagerState.animateScrollToPage(target) }
-            launch { 
-                // First scroll to bring item into view
+            launch {
                 listState.scrollToItem(target)
-                // Then animate to ensure it's centered (snap behavior will help)
-                listState.animateScrollToItem(
-                    index = target,
-                    scrollOffset = 0
-                )
+                listState.animateScrollToItem(index = target, scrollOffset = 0)
             }
         }.invokeOnCompletion { pagerIsDriving = false }
         viewModel.setSelectedIndex(target)
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier.width(320.dp),
-                drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
-                drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    // Drawer content composable (shared between modal and permanent)
+    @Composable
+    fun DrawerContent(modifier: Modifier = Modifier) {
+        Column(modifier = modifier.fillMaxHeight()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxHeight()
-                ) {
-                    // Header
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp)
-                    ) {
-                        Text(
-                            text = "Library",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "${uiState.items.size} videos",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                Text(
+                    text = "Library",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${uiState.items.size} videos",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
-                    // Search
-                    OutlinedTextField(
-                        value = drawerQuery,
-                        onValueChange = { drawerQuery = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        singleLine = true,
-                        placeholder = {
-                            Text("Search")
-                        },
-                        leadingIcon = {
+            OutlinedTextField(
+                value = drawerQuery,
+                onValueChange = { drawerQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                singleLine = true,
+                placeholder = { Text("Search") },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                trailingIcon = {
+                    if (drawerQuery.isNotEmpty()) {
+                        IconButton(onClick = { drawerQuery = "" }) {
                             Icon(
-                                Icons.Default.Search,
-                                contentDescription = "Search",
+                                Icons.Default.Close,
+                                contentDescription = "Clear search",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                        },
-                        shape = RoundedCornerShape(28.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    val filteredItems = if (drawerQuery.isBlank()) {
-                        uiState.items
-                    } else {
-                        val q = drawerQuery.lowercase()
-                        uiState.items.filter { it.title.lowercase().contains(q) }
+                        }
                     }
+                },
+                shape = RoundedCornerShape(28.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            )
 
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            val filteredItems = if (drawerQuery.isBlank()) {
+                uiState.items
+            } else {
+                val q = drawerQuery.lowercase()
+                uiState.items.filter { it.title.lowercase().contains(q) }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                items(filteredItems) { item ->
+                    val isSelected = item.id == uiState.currentItem?.id
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                                else Color.Transparent
+                            )
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                val index = uiState.items.indexOfFirst { it.id == item.id }
+                                if (index >= 0) {
+                                    navigateTo(index)
+                                    scope.launch { drawerState.close() }
+                                }
+                            }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(filteredItems) { item ->
-                            val isSelected = item.id == uiState.currentItem?.id
-                            
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                                        else Color.Transparent
-                                    )
-                                    .clickable {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        val index = uiState.items.indexOfFirst { it.id == item.id }
-                                        if (index >= 0) {
-                                            navigateTo(index)
-                                            scope.launch { drawerState.close() }
-                                        }
-                                    }
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        ) {
+                            KmpAsyncImage(
+                                imageUrl = item.thumbnailUrl,
+                                contentDescription = item.title,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            // Show favorite indicator
+                            if (item.isFavorite) {
                                 Box(
                                     modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .align(Alignment.TopEnd)
+                                        .padding(4.dp)
+                                        .size(16.dp)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary,
+                                            RoundedCornerShape(4.dp)
+                                        ),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    KmpAsyncImage(
-                                        imageUrl = item.thumbnailUrl,
-                                        contentDescription = item.title,
-                                        modifier = Modifier.fillMaxSize()
+                                    Icon(
+                                        Icons.Default.Favorite,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(10.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                 }
-                                Text(
-                                    text = item.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer 
-                                           else MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
                             }
                         }
+                        Text(
+                            text = highlightSearchText(item.title, drawerQuery),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+                            else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
         }
-    ) {
+    }
+
+    // Main content composable
+    @Composable
+    fun MainContent(showMenuButton: Boolean = true) {
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -330,12 +361,14 @@ fun MainScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                Icons.Default.Menu,
-                                contentDescription = "Menu",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+                        if (showMenuButton) {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(
+                                    Icons.Default.Menu,
+                                    contentDescription = "Menu",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     },
                     actions = {
@@ -348,12 +381,12 @@ fun MainScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = Color.Transparent,
                         titleContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             },
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = Color.Transparent
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -375,7 +408,54 @@ fun MainScreen(
                     }
                 } else {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Main pager area - each page is its own card
+                        // Filter chip row
+                        AnimatedVisibility(
+                            visible = uiState.activeFilter != FilterCategory.All,
+                            enter = slideInVertically { -it } + fadeIn(),
+                            exit = slideOutVertically { -it } + fadeOut()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                FilterChip(
+                                    selected = true,
+                                    onClick = { viewModel.setActiveFilter(FilterCategory.All) },
+                                    label = {
+                                        Text(
+                                            when (uiState.activeFilter) {
+                                                FilterCategory.Favorites -> "Favorites"
+                                                else -> ""
+                                            }
+                                        )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Favorite,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    trailingIcon = {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Clear filter",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+
+                        // Main pager area
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -388,8 +468,7 @@ fun MainScreen(
                                 pageSpacing = 4.dp
                             ) { page ->
                                 val item = uiState.items.getOrNull(page) ?: return@HorizontalPager
-                                
-                                // Calculate scale based on distance from current page
+
                                 val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
                                 val scale = 0.85f + (1f - abs(pageOffset).coerceIn(0f, 1f)) * 0.15f
 
@@ -408,7 +487,9 @@ fun MainScreen(
                                             .fillMaxWidth()
                                             .aspectRatio(1f),
                                         shape = RoundedCornerShape(24.dp),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = if (abs(pageOffset) < 0.5f) 12.dp else 4.dp),
+                                        elevation = CardDefaults.cardElevation(
+                                            defaultElevation = if (abs(pageOffset) < 0.5f) 12.dp else 4.dp
+                                        ),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                         )
@@ -447,7 +528,8 @@ fun MainScreen(
                                     modifier = Modifier
                                         .align(Alignment.CenterStart)
                                         .padding(start = 12.dp),
-                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                    nudgeOffsetX = (-8).dp
                                 )
                             }
                             if (pagerState.currentPage < uiState.items.lastIndex) {
@@ -461,50 +543,20 @@ fun MainScreen(
                                     modifier = Modifier
                                         .align(Alignment.CenterEnd)
                                         .padding(end = 12.dp),
-                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                    backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                    nudgeOffsetX = 8.dp
                                 )
                             }
 
-                            // Title overlay during scrubbing
-                            Box(modifier = Modifier.align(Alignment.TopCenter)) {
-                                androidx.compose.animation.AnimatedVisibility(
-                                    visible = isUserScrollingScrubber,
-                                    enter = fadeIn(tween(150)),
-                                    exit = fadeOut(tween(200))
-                                ) {
-                                    val previewTitle = uiState.items.getOrNull(centeredScrubberIndex)?.title
-                                    if (!previewTitle.isNullOrBlank()) {
-                                        GlassmorphicSurface(
-                                            modifier = Modifier
-                                                .padding(top = 20.dp)
-                                                .width(180.dp),
-                                            shape = RoundedCornerShape(16.dp),
-                                            backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)
-                                        ) {
-                                            Text(
-                                                text = previewTitle,
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                                                    .fillMaxWidth(),
-                                                style = MaterialTheme.typography.labelLarge,
-                                                fontWeight = FontWeight.Medium,
-                                                maxLines = 2,
-                                                overflow = TextOverflow.Ellipsis,
-                                                textAlign = TextAlign.Center,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // Action toolbar overlaid at bottom of pager
+
+
+                            // Action toolbar
                             val toolbarAlpha by animateFloatAsState(
                                 targetValue = if (pagerState.isScrollInProgress || listState.isScrollInProgress) 0.4f else 1f,
                                 animationSpec = tween(150),
                                 label = "toolbarAlpha"
                             )
-                            
+
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -521,18 +573,35 @@ fun MainScreen(
                                     horizontalArrangement = Arrangement.spacedBy(0.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
+                                    val currentItem = uiState.currentItem
+                                    val isFavorite = currentItem?.isFavorite == true
+
+                                    val favoriteScale by animateFloatAsState(
+                                        targetValue = if (isFavorite) 1.1f else 1f,
+                                        animationSpec = spring(
+                                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                                            stiffness = Spring.StiffnessLow
+                                        ),
+                                        label = "favoriteScale"
+                                    )
+
                                     IconButton(
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            // TODO: Toggle favorite
+                                            currentItem?.let { viewModel.toggleFavorite(it.id) }
                                         }
                                     ) {
                                         Icon(
-                                            Icons.Default.FavoriteBorder,
-                                            contentDescription = "Favorite",
-                                            tint = MaterialTheme.colorScheme.primary
+                                            if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                            contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                                            tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.graphicsLayer {
+                                                scaleX = favoriteScale
+                                                scaleY = favoriteScale
+                                            }
                                         )
                                     }
+
                                     IconButton(
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -573,8 +642,8 @@ fun MainScreen(
                                 .background(
                                     brush = Brush.verticalGradient(
                                         colors = listOf(
-                                            MaterialTheme.colorScheme.surface,
-                                            MaterialTheme.colorScheme.surfaceContainerLow
+                                            Color.Transparent,
+                                            MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.9f)
                                         )
                                     )
                                 )
@@ -616,7 +685,7 @@ fun MainScreen(
                 }
             }
         }
-        
+
         // Info Bottom Sheet
         if (showInfoSheet) {
             val currentItem = uiState.currentItem
@@ -632,15 +701,13 @@ fun MainScreen(
                         .padding(bottom = 32.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Title
                     Text(
                         text = currentItem?.title ?: "No item selected",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    
-                    // Description
+
                     currentItem?.description?.let { description ->
                         Text(
                             text = description,
@@ -648,8 +715,7 @@ fun MainScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    
-                    // Verse card
+
                     if (currentItem?.verseReference != null || currentItem?.verseText != null) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -671,7 +737,7 @@ fun MainScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
-                                
+
                                 currentItem.verseReference?.let { reference ->
                                     val bibleComUrl = "https://www.bible.com/bible/1/${formatBibleReference(reference)}"
                                     val annotatedText = buildAnnotatedString {
@@ -685,7 +751,7 @@ fun MainScreen(
                                         }
                                         append(" →")
                                     }
-                                    
+
                                     Text(
                                         text = annotatedText,
                                         style = MaterialTheme.typography.labelLarge.copy(
@@ -698,8 +764,7 @@ fun MainScreen(
                             }
                         }
                     }
-                    
-                    // No info placeholder
+
                     if (currentItem?.description == null && currentItem?.verseReference == null) {
                         Box(
                             modifier = Modifier
@@ -718,11 +783,99 @@ fun MainScreen(
             }
         }
     }
+
+    // Adaptive layout based on screen width
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isTablet = maxWidth >= 600.dp
+
+        // Shader background layer
+        ShaderBackground(
+            modifier = Modifier.fillMaxSize(),
+            enabled = shaderEffectEnabled
+        )
+
+        // Surface background - reduced opacity to let shader show through
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = if (shaderEffectEnabled) 0.65f else 1f))
+        )
+
+        if (isTablet) {
+            // Permanent drawer for tablets
+            PermanentNavigationDrawer(
+                drawerContent = {
+                    PermanentDrawerSheet(
+                        modifier = Modifier.width(320.dp),
+                        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ) {
+                        DrawerContent()
+                    }
+                }
+            ) {
+                MainContent(showMenuButton = false)
+            }
+        } else {
+            // Modal drawer for phones
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    ModalDrawerSheet(
+                        modifier = Modifier.width(320.dp),
+                        drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
+                        drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ) {
+                        DrawerContent()
+                    }
+                }
+            ) {
+                MainContent(showMenuButton = true)
+            }
+        }
+    }
 }
 
-// Helper function to format Bible reference for Bible.com URL
+@Composable
+private fun highlightSearchText(text: String, query: String): AnnotatedString {
+    if (query.isBlank()) {
+        return AnnotatedString(text)
+    }
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    return buildAnnotatedString {
+        val lowerText = text.lowercase()
+        val lowerQuery = query.lowercase()
+        var currentIndex = 0
+
+        while (currentIndex < text.length) {
+            val matchIndex = lowerText.indexOf(lowerQuery, currentIndex)
+            if (matchIndex == -1) {
+                append(text.substring(currentIndex))
+                break
+            }
+
+            // Append text before match
+            if (matchIndex > currentIndex) {
+                append(text.substring(currentIndex, matchIndex))
+            }
+
+            // Append highlighted match
+            withStyle(
+                SpanStyle(
+                    color = primaryColor,
+                    fontWeight = FontWeight.Bold
+                )
+            ) {
+                append(text.substring(matchIndex, matchIndex + query.length))
+            }
+
+            currentIndex = matchIndex + query.length
+        }
+    }
+}
+
 private fun formatBibleReference(reference: String): String {
-    // Simple conversion: "Genesis 1:1" -> "GEN.1.1"
     val bookAbbreviations = mapOf(
         "genesis" to "GEN", "exodus" to "EXO", "leviticus" to "LEV",
         "numbers" to "NUM", "deuteronomy" to "DEU", "joshua" to "JOS",
@@ -733,14 +886,14 @@ private fun formatBibleReference(reference: String): String {
         "john" to "JHN", "acts" to "ACT", "romans" to "ROM",
         "revelation" to "REV"
     )
-    
+
     val parts = reference.lowercase().split(" ", ":")
     if (parts.size < 2) return reference
-    
+
     val book = bookAbbreviations[parts[0]] ?: parts[0].take(3).uppercase()
     val chapter = parts.getOrNull(1) ?: "1"
     val verse = parts.getOrNull(2) ?: "1"
-    
+
     return "$book.$chapter.$verse"
 }
 
@@ -753,7 +906,6 @@ private fun ScrubberItem(
     extraSize: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
-    // Calculate progress based on distance from center (0 = far, 1 = centered)
     val progress by remember(listState) {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
@@ -770,9 +922,18 @@ private fun ScrubberItem(
         }
     }
 
-    // Lerp size: baseSize when far, baseSize + extraSize when centered
     val currentSize = baseSize + (extraSize * progress)
-    val isCenter = progress > 0.7f
+    
+    // Animated border width - grows/shrinks smoothly based on progress
+    val borderProgress = ((progress - 0.5f) / 0.5f).coerceIn(0f, 1f)
+    val animatedBorderWidth by animateDpAsState(
+        targetValue = (3.dp * borderProgress),
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "borderWidth"
+    )
 
     Box(
         modifier = Modifier
@@ -785,7 +946,29 @@ private fun ScrubberItem(
             contentDescription = item.title,
             modifier = Modifier.fillMaxSize()
         )
-        
+
+        // Favorite indicator
+        if (item.isFavorite) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+                    .size(14.dp)
+                    .background(
+                        MaterialTheme.colorScheme.error,
+                        RoundedCornerShape(3.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.size(8.dp),
+                    tint = Color.White
+                )
+            }
+        }
+
         // Title overlay at the bottom
         Box(
             modifier = Modifier
@@ -811,14 +994,14 @@ private fun ScrubberItem(
                 textAlign = TextAlign.Center
             )
         }
-        
-        // Border inside when centered
-        if (isCenter) {
+
+        // Animated border - grows/shrinks smoothly
+        if (animatedBorderWidth > 0.dp) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .border(
-                        width = 3.dp,
+                        width = animatedBorderWidth,
                         color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(12.dp)
                     )

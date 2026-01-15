@@ -33,11 +33,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val settingsRepository = remember { SettingsRepository(createDataStore(this@MainActivity)) }
             val viewModel = remember {
-                MainViewModel(GifRepository(DatabaseDataSource()))
+                MainViewModel(GifRepository(DatabaseDataSource(), settingsRepository))
             }
             val settingsViewModel = remember {
-                SettingsViewModel(SettingsRepository(createDataStore(this@MainActivity)))
+                SettingsViewModel(settingsRepository)
             }
             val settings by settingsViewModel.settings.collectAsState()
             
