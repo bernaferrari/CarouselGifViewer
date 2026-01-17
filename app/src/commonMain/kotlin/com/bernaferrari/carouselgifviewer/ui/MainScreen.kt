@@ -3,7 +3,6 @@ package com.bernaferrari.carouselgifviewer.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -104,6 +103,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.carouselgifviewer.data.GifItem
+import com.bernaferrari.carouselgifviewer.data.ShaderType
 import com.bernaferrari.carouselgifviewer.ui.components.AnimatedIconButton
 import com.bernaferrari.carouselgifviewer.ui.components.GlassmorphicSurface
 import com.bernaferrari.carouselgifviewer.ui.components.LoadingSpinner
@@ -118,7 +118,8 @@ fun MainScreen(
     onShareItem: (String, String) -> Unit,
     onOpenBrowser: (String) -> Unit,
     onOpenSettings: () -> Unit,
-    shaderEffectEnabled: Boolean = false
+    shaderEffectEnabled: Boolean = false,
+    shaderType: ShaderType = ShaderType.Aurora
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(
@@ -639,14 +640,6 @@ fun MainScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(110.dp)
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color.Transparent,
-                                            MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.9f)
-                                        )
-                                    )
-                                )
                         ) {
                             val itemSize = 80.dp
                             val sidePadding = if (maxWidth > itemSize) {
@@ -791,14 +784,15 @@ fun MainScreen(
         // Shader background layer
         ShaderBackground(
             modifier = Modifier.fillMaxSize(),
-            enabled = shaderEffectEnabled
+            enabled = shaderEffectEnabled,
+            shaderType = shaderType
         )
 
         // Surface background - reduced opacity to let shader show through
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = if (shaderEffectEnabled) 0.65f else 1f))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = if (shaderEffectEnabled) 0f else 1f))
         )
 
         if (isTablet) {
@@ -924,16 +918,9 @@ private fun ScrubberItem(
 
     val currentSize = baseSize + (extraSize * progress)
     
-    // Animated border width - grows/shrinks smoothly based on progress
-    val borderProgress = ((progress - 0.5f) / 0.5f).coerceIn(0f, 1f)
-    val animatedBorderWidth by animateDpAsState(
-        targetValue = (3.dp * borderProgress),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "borderWidth"
-    )
+    // Border properties - scales from 0 to max, always present in layout
+    val borderAlpha = progress
+    val borderWidth = 3.dp * progress
 
     Box(
         modifier = Modifier
@@ -995,17 +982,15 @@ private fun ScrubberItem(
             )
         }
 
-        // Animated border - grows/shrinks smoothly
-        if (animatedBorderWidth > 0.dp) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(
-                        width = animatedBorderWidth,
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-            )
-        }
+        // Border - always present in composition for performance, scales from 0
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .border(
+                    width = borderWidth,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha),
+                    shape = RoundedCornerShape(12.dp)
+                )
+        )
     }
 }

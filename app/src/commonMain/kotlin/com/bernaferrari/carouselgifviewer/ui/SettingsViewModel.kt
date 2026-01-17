@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.carouselgifviewer.data.AppSettings
 import com.bernaferrari.carouselgifviewer.data.SettingsRepository
+import com.bernaferrari.carouselgifviewer.data.ShaderType
 import com.bernaferrari.carouselgifviewer.data.ThemeMode
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,4 +39,11 @@ class SettingsViewModel(
             repository.setShaderEffectEnabled(enabled)
         }
     }
+
+    fun setShaderType(type: ShaderType) {
+        viewModelScope.launch {
+            repository.setShaderType(type)
+        }
+    }
 }
+

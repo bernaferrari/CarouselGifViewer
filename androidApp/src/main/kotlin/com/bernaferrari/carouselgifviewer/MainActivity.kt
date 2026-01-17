@@ -25,7 +25,7 @@ import com.bernaferrari.carouselgifviewer.ui.AppNavigation
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
 import com.bernaferrari.carouselgifviewer.ui.SettingsViewModel
 import com.bernaferrari.carouselgifviewer.ui.VideoCacheManager
-import com.bernaferrari.carouselgifviewer.ui.accentColors
+import com.bernaferrari.carouselgifviewer.ui.accentGradients
 import com.bernaferrari.carouselgifviewer.ui.theme.CarouselGifViewerTheme
 
 class MainActivity : ComponentActivity() {
@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
             } else null
             
             val accentColor = if (useMaterialYou) null 
-                else accentColors.getOrNull(settings.accentColorIndex)?.color
+                else accentGradients.getOrNull(settings.accentColorIndex)?.first
             
             CarouselGifViewerTheme(
                 darkTheme = isDarkTheme,

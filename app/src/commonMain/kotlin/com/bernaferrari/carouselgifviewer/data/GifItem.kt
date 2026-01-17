@@ -1,5 +1,8 @@
 package com.bernaferrari.carouselgifviewer.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GifItem(
     val id: String,
     val title: String,

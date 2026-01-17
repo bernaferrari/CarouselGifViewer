@@ -47,8 +47,9 @@ fun AppNavigation(
                     viewModel = mainViewModel,
                     onShareItem = onShareItem,
                     onOpenBrowser = onOpenBrowser,
-                    onOpenSettings = { backStack.add(SettingsRoute) },
-                    shaderEffectEnabled = settings.shaderEffectEnabled
+                    onOpenSettings = { backStack += SettingsRoute },
+                    shaderEffectEnabled = settings.shaderEffectEnabled,
+                    shaderType = settings.shaderType
                 )
             }
             
@@ -63,3 +64,4 @@ fun AppNavigation(
         }
     )
 }
+

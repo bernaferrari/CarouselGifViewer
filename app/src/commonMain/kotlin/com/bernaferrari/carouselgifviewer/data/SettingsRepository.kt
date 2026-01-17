@@ -13,10 +13,17 @@ enum class ThemeMode {
     System, Light, Dark, MaterialYou
 }
 
+enum class ShaderType {
+    Aurora, LavaLamp, Waves, Nebula, Candy, Juggling, Vortex, Vortex2,
+    Silk, Mosaic, Cyber, Plasma, Fireflies, LiquidGlass, Crystal,
+    Matrix, DNA, BlackHole, Topography, Cosmic, MaterialYou
+}
+
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.System,
     val accentColorIndex: Int = 0,
     val shaderEffectEnabled: Boolean = false,
+    val shaderType: ShaderType = ShaderType.Aurora,
     val favorites: Set<String> = emptySet()
 )
 
@@ -27,6 +34,7 @@ class SettingsRepository(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val ACCENT_COLOR_INDEX = intPreferencesKey("accent_color_index")
         val SHADER_EFFECT_ENABLED = booleanPreferencesKey("shader_effect_enabled")
+        val SHADER_TYPE = stringPreferencesKey("shader_type")
         val FAVORITES = stringPreferencesKey("favorites")
     }
 
@@ -37,6 +45,9 @@ class SettingsRepository(
             } ?: ThemeMode.System,
             accentColorIndex = prefs[Keys.ACCENT_COLOR_INDEX] ?: 0,
             shaderEffectEnabled = prefs[Keys.SHADER_EFFECT_ENABLED] ?: false,
+            shaderType = prefs[Keys.SHADER_TYPE]?.let {
+                ShaderType.entries.find { type -> type.name == it }
+            } ?: ShaderType.Aurora,
             favorites = prefs[Keys.FAVORITES]?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
         )
     }
@@ -60,6 +71,12 @@ class SettingsRepository(
     suspend fun setShaderEffectEnabled(enabled: Boolean) {
         dataStore.edit { prefs ->
             prefs[Keys.SHADER_EFFECT_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setShaderType(type: ShaderType) {
+        dataStore.edit { prefs ->
+            prefs[Keys.SHADER_TYPE] = type.name
         }
     }
 
