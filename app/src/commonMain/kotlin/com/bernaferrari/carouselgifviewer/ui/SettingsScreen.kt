@@ -440,42 +440,96 @@ private fun ShaderTypeSelector(
     onTypeSelected: (ShaderType) -> Unit,
     accentColor: Color
 ) {
-    val shaderOptions = listOf(
-        ShaderOption(ShaderType.Aurora, "Aurora", listOf(Color(0xFF00FF88), Color(0xFF7000FF))),
-        ShaderOption(ShaderType.LavaLamp, "Lava", listOf(Color(0xFFFF3366), Color(0xFFFF9900))),
-        ShaderOption(ShaderType.Waves, "Waves", listOf(Color(0xFF1A33CC), Color(0xFF00B2CC))),
-        ShaderOption(ShaderType.Nebula, "Nebula", listOf(Color(0xFF330033), Color(0xFF004D66))),
-        ShaderOption(ShaderType.Candy, "Candy", listOf(Color(0xFFFF88CC), Color(0xFF4DD9F2))),
-        ShaderOption(ShaderType.Juggling, "Juggle", listOf(Color(0xFFFF3333), Color(0xFF33FF33))),
-        ShaderOption(ShaderType.Vortex, "Vortex", listOf(Color(0xFF4A0D73), Color(0xFF00D9CC))),
-        ShaderOption(ShaderType.Vortex2, "Galaxy", listOf(Color(0xFF000033), Color(0xFF9933FF))),
-        ShaderOption(ShaderType.Silk, "Silk", listOf(Color(0xFF331A00), Color(0xFFD96626))),
-        ShaderOption(ShaderType.Mosaic, "Mosaic", listOf(Color(0xFF4366A3), Color(0xFFFFCC80))),
-        ShaderOption(ShaderType.Cyber, "Cyber", listOf(Color(0xFF0D0433), Color(0xFF00CCFF))),
-        ShaderOption(ShaderType.Plasma, "Plasma", listOf(Color(0xFF0D001A), Color(0xFF6600CC))),
-        ShaderOption(ShaderType.Fireflies, "Bokeh", listOf(Color(0xFF000000), Color(0xFFFFE680))),
-        ShaderOption(ShaderType.LiquidGlass, "Glass", listOf(Color(0xFF001A33), Color(0xFF66E6FF))),
-        ShaderOption(ShaderType.Crystal, "Crystal", listOf(Color(0xFF0D001A), Color(0xFF9966FF))),
-        ShaderOption(ShaderType.Matrix, "Matrix", listOf(Color(0xFF000000), Color(0xFF00FF33))),
-        ShaderOption(ShaderType.DNA, "DNA", listOf(Color(0xFF000000), Color(0xFF3399FF))),
-        ShaderOption(ShaderType.BlackHole, "Hole", listOf(Color(0xFF000000), Color(0xFFFF9933))),
-        ShaderOption(ShaderType.Topography, "Map", listOf(Color(0xFF1A2633), Color(0xFF00CC99))),
+    val basicOptions = listOf(
+        ShaderOption(ShaderType.Aurora, "Aurora", listOf(Color(0xFF00C6FF), Color(0xFF0072FF))),
+        ShaderOption(ShaderType.LavaLamp, "Lava Lamp", listOf(Color(0xFFFFADF0), Color(0xFF4339F2))),
+        ShaderOption(ShaderType.Waves, "Waves", listOf(Color(0xFF89F7FE), Color(0xFF66A6FF))),
+        ShaderOption(ShaderType.Nebula, "Nebula", listOf(Color(0xFFFF00CC), Color(0xFF333399))),
+        ShaderOption(ShaderType.Candy, "Candy", listOf(Color(0xFFEE9CA7), Color(0xFFFFDDE1))),
+        ShaderOption(ShaderType.Orbs, "Orbs", listOf(Color(0xFF4facfe), Color(0xFF00f2fe))),
+        ShaderOption(ShaderType.Vortex, "Vortex", listOf(Color(0xFF00c6ff), Color(0xFF0072ff))),
+        ShaderOption(ShaderType.Wormhole, "Wormhole", listOf(Color(0xFF000000), Color(0xFF434343))),
+        ShaderOption(ShaderType.Silk, "Silk", listOf(Color(0xFFFAACA8), Color(0xFFDDD6F3))),
+        ShaderOption(ShaderType.Mosaic, "Mosaic", listOf(Color(0xFFFFEFBA), Color(0xFFFFFFFF))),
+        ShaderOption(ShaderType.Plasma, "Plasma", listOf(Color(0xFFDA22FF), Color(0xFF9733EE))),
+        ShaderOption(ShaderType.Stardust, "Stardust", listOf(Color(0xFF654ea3), Color(0xFFeaafc8))),
+        ShaderOption(ShaderType.Prism, "Prism", listOf(Color(0xFFE0EAFC), Color(0xFFCFDEF3))),
+    )
+
+    val creativeOptions = listOf(
+        ShaderOption(ShaderType.AuroraAlt, "Aurora (Alt)", listOf(Color(0xFF00C6FF), Color(0xFF0072FF))),
+        ShaderOption(ShaderType.LavaLampAlt, "Lava Lamp (Alt)", listOf(Color(0xFFFFADF0), Color(0xFF4339F2))),
+        ShaderOption(ShaderType.NebulaAlt, "Nebula (Alt)", listOf(Color(0xFFFF00CC), Color(0xFF333399))),
+        ShaderOption(ShaderType.WavesAlt, "Waves (Alt)", listOf(Color(0xFF89F7FE), Color(0xFF66A6FF))),
+        ShaderOption(ShaderType.SilkAlt, "Silk (Alt)", listOf(Color(0xFFFAACA8), Color(0xFFDDD6F3))),
+        ShaderOption(ShaderType.Dreamy, "Dreamy", listOf(Color(0xFF88CCFF), Color(0xFFFF99CC))),
+        ShaderOption(ShaderType.Starlight, "Starlight", listOf(Color(0xFFFFDD44), Color(0xFF66DDFF))),
+        ShaderOption(ShaderType.Transit, "Transit", listOf(Color(0xFFFF9900), Color(0xFF003366))),
+        ShaderOption(ShaderType.HexGrid, "Hex Grid", listOf(Color(0xFFFF0000), Color(0xFF0000FF))),
+        ShaderOption(ShaderType.GoldenRings, "Golden Rings", listOf(Color(0xFFCC9900), Color(0xFF333300))),
+        ShaderOption(ShaderType.Ether, "Ether", listOf(Color(0xFFCCCCCC), Color(0xFF001133))),
+        ShaderOption(ShaderType.Inferno, "Inferno", listOf(Color(0xFF330000), Color(0xFFFF3300))),
+        ShaderOption(ShaderType.Cinders, "Cinders", listOf(Color(0xFF000066), Color(0xFF00CCFF))),
+        ShaderOption(ShaderType.InkBlot, "Ink Blot", listOf(Color(0xFFCCCCCC), Color(0xFFDDDDDD))),
+        ShaderOption(ShaderType.Monochrome, "Monochrome", listOf(Color(0xFF000000), Color(0xFFFFFFFF))),
+        ShaderOption(ShaderType.Hellfire, "Hellfire", listOf(Color(0xFFFF3300), Color(0xFF330000))),
+        ShaderOption(ShaderType.Scanline, "Scanline", listOf(Color(0xFF00FF00), Color(0xFF003300))),
+        ShaderOption(ShaderType.Radar, "Radar", listOf(Color(0xFF0066CC), Color(0xFF001133))),
+        ShaderOption(ShaderType.Chrome, "Chrome", listOf(Color(0xFFFFFFFF), Color(0xFFCCCCCC))),
+        ShaderOption(ShaderType.Zen, "Zen", listOf(Color(0xFF66CCCC), Color(0xFFCC66CC))),
     )
     
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        maxItemsInEachRow = 2
-    ) {
-        shaderOptions.forEach { option ->
-            ShaderOptionCard(
-                option = option,
-                isSelected = selectedType == option.type,
-                accentColor = accentColor,
-                onClick = { onTypeSelected(option.type) },
-                modifier = Modifier.weight(1f)
-            )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Basic Collection
+        Text(
+            "Basic Collection",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 4.dp)
+        )
+        
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            maxItemsInEachRow = 2
+        ) {
+            basicOptions.forEach { option ->
+                ShaderOptionCard(
+                    option = option,
+                    isSelected = selectedType == option.type,
+                    accentColor = accentColor,
+                    onClick = { onTypeSelected(option.type) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        // Creative Collection
+        Text(
+            "Creative Collection",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+        )
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            maxItemsInEachRow = 2
+        ) {
+            creativeOptions.forEach { option ->
+                ShaderOptionCard(
+                    option = option,
+                    isSelected = selectedType == option.type,
+                    accentColor = accentColor,
+                    onClick = { onTypeSelected(option.type) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -674,26 +728,4 @@ private fun FooterSection() {
     }
 }
 
-private fun Modifier.applyShader(type: ShaderType, isDark: Boolean): Modifier {
-    return when (type) {
-        ShaderType.Aurora -> this.auroraEffect(isDark)
-        ShaderType.LavaLamp -> this.lavaLampEffect(isDark)
-        ShaderType.Waves -> this.wavesEffect(isDark)
-        ShaderType.Nebula -> this.nebulaEffect(isDark)
-        ShaderType.Candy -> this.candyEffect(isDark)
-        ShaderType.Juggling -> this.jugglingEffect(isDark)
-        ShaderType.Vortex -> this.vortexEffect(isDark)
-        ShaderType.Vortex2 -> this.vortex2Effect(isDark)
-        ShaderType.Silk -> this.silkEffect(isDark)
-        ShaderType.Mosaic -> this.mosaicEffect(isDark)
-        ShaderType.Cyber -> this.cyberEffect(isDark)
-        ShaderType.Plasma -> this.plasmaEffect(isDark)
-        ShaderType.Fireflies -> this.firefliesEffect(isDark)
-        ShaderType.Matrix -> this.matrixEffect(isDark)
-        ShaderType.DNA -> this.dnaEffect(isDark)
-        ShaderType.BlackHole -> this.blackHoleEffect(isDark)
-        ShaderType.Topography -> this.topographyEffect(isDark)
-        ShaderType.Cosmic -> this.cosmicEffect(isDark)
-        else -> this
-    }
-}
+

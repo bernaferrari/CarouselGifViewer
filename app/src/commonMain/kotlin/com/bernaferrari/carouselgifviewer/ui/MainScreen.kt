@@ -119,7 +119,7 @@ fun MainScreen(
     onOpenBrowser: (String) -> Unit,
     onOpenSettings: () -> Unit,
     shaderEffectEnabled: Boolean = false,
-    shaderType: ShaderType = ShaderType.Aurora
+    shaderType: ShaderType = ShaderType.Zen
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(

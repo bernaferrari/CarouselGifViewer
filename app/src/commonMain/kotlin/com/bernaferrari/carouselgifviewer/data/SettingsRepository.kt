@@ -14,16 +14,24 @@ enum class ThemeMode {
 }
 
 enum class ShaderType {
-    Aurora, LavaLamp, Waves, Nebula, Candy, Juggling, Vortex, Vortex2,
-    Silk, Mosaic, Cyber, Plasma, Fireflies, LiquidGlass, Crystal,
-    Matrix, DNA, BlackHole, Topography, Cosmic, MaterialYou
+    // Basic
+    Aurora, LavaLamp, Waves, Nebula, Candy, Orbs, Vortex, Wormhole, Silk, Mosaic,
+    Plasma, Stardust, Prism,
+    
+    // Alt Versions
+    AuroraAlt, LavaLampAlt, NebulaAlt, WavesAlt, SilkAlt,
+    
+    // Special
+    Dreamy, Starlight, Transit, HexGrid, GoldenRings,
+    Ether, Inferno, Cinders, InkBlot, Monochrome,
+    Hellfire, Scanline, Radar, Chrome, Zen
 }
 
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.System,
     val accentColorIndex: Int = 0,
-    val shaderEffectEnabled: Boolean = false,
-    val shaderType: ShaderType = ShaderType.Aurora,
+    val shaderEffectEnabled: Boolean = true,
+    val shaderType: ShaderType = ShaderType.Zen,
     val favorites: Set<String> = emptySet()
 )
 
@@ -47,7 +55,7 @@ class SettingsRepository(
             shaderEffectEnabled = prefs[Keys.SHADER_EFFECT_ENABLED] ?: false,
             shaderType = prefs[Keys.SHADER_TYPE]?.let {
                 ShaderType.entries.find { type -> type.name == it }
-            } ?: ShaderType.Aurora,
+            } ?: ShaderType.Zen,
             favorites = prefs[Keys.FAVORITES]?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
         )
     }
