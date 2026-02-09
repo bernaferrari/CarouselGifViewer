@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.carouselgifviewer.data.GifItem
 import com.bernaferrari.carouselgifviewer.data.GifRepository
+import com.bernaferrari.carouselgifviewer.data.SettingsRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -27,7 +31,8 @@ data class MainUiState(
 )
 
 class MainViewModel(
-    private val repository: GifRepository
+    private val repository: GifRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _filterQuery = MutableStateFlow("")
@@ -76,6 +81,36 @@ class MainViewModel(
             repository.items.collect {
                 _isLoading.value = false
             }
+        }
+
+        // Restore last selected item
+        viewModelScope.launch {
+            val items = repository.items.first { it.isNotEmpty() }
+            val lastId = settingsRepository.settings.first().lastSelectedId
+            
+            if (lastId != null) {
+                val index = items.indexOfFirst { it.id == lastId }
+                if (index >= 0) {
+                    _selectedIndex.value = index
+                }
+            }
+        }
+
+        // Save selected item with debounce
+        @OptIn(FlowPreview::class)
+        viewModelScope.launch {
+            _selectedIndex
+                .debounce(500)
+                .collect { index ->
+                    val items = repository.items.first()
+                    // Allow saving even if list is empty? No, can't get ID.
+                    // But if list is loaded:
+                    if (items.isNotEmpty()) {
+                        val safeIndex = index.coerceIn(0, items.lastIndex)
+                        val item = items[safeIndex]
+                        settingsRepository.setLastSelectedId(item.id)
+                    }
+                }
         }
     }
 

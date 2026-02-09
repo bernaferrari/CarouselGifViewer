@@ -190,6 +190,13 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(uiState.selectedIndex) {
+        if (uiState.items.isNotEmpty() && uiState.selectedIndex != pagerState.currentPage) {
+            pagerState.scrollToPage(uiState.selectedIndex)
+            listState.scrollToItem(uiState.selectedIndex)
+        }
+    }
+
     fun navigateTo(index: Int) {
         if (uiState.items.isEmpty()) return
         val target = index.coerceIn(0, uiState.items.lastIndex)

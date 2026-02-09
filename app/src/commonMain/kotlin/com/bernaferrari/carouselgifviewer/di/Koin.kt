@@ -13,7 +13,7 @@ val dataModule = module {
 }
 
 val viewModelModule = module {
-    factory { MainViewModel(get()) }
+    factory { MainViewModel(get(), get()) }
 }
 
 fun initKoin(

@@ -32,7 +32,8 @@ data class AppSettings(
     val accentColorIndex: Int = 0,
     val shaderEffectEnabled: Boolean = true,
     val shaderType: ShaderType = ShaderType.Zen,
-    val favorites: Set<String> = emptySet()
+    val favorites: Set<String> = emptySet(),
+    val lastSelectedId: String? = null
 )
 
 class SettingsRepository(
@@ -44,6 +45,7 @@ class SettingsRepository(
         val SHADER_EFFECT_ENABLED = booleanPreferencesKey("shader_effect_enabled")
         val SHADER_TYPE = stringPreferencesKey("shader_type")
         val FAVORITES = stringPreferencesKey("favorites")
+        val LAST_SELECTED_ID = stringPreferencesKey("last_selected_id")
     }
 
     val settings: Flow<AppSettings> = dataStore.data.map { prefs ->
@@ -56,7 +58,8 @@ class SettingsRepository(
             shaderType = prefs[Keys.SHADER_TYPE]?.let {
                 ShaderType.entries.find { type -> type.name == it }
             } ?: ShaderType.Zen,
-            favorites = prefs[Keys.FAVORITES]?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet()
+            favorites = prefs[Keys.FAVORITES]?.split(",")?.filter { it.isNotBlank() }?.toSet() ?: emptySet(),
+            lastSelectedId = prefs[Keys.LAST_SELECTED_ID]
         )
     }
 
@@ -103,6 +106,12 @@ class SettingsRepository(
     suspend fun setFavorites(favorites: Set<String>) {
         dataStore.edit { prefs ->
             prefs[Keys.FAVORITES] = favorites.joinToString(",")
+        }
+    }
+
+    suspend fun setLastSelectedId(id: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.LAST_SELECTED_ID] = id
         }
     }
 }
