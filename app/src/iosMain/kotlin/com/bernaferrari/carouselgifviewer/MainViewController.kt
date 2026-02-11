@@ -11,10 +11,11 @@ import com.bernaferrari.carouselgifviewer.data.GifRepository
 import com.bernaferrari.carouselgifviewer.data.SettingsRepository
 import com.bernaferrari.carouselgifviewer.data.ThemeMode
 import com.bernaferrari.carouselgifviewer.data.createDataStore
+import com.bernaferrari.carouselgifviewer.data.createDownloadManager
 import com.bernaferrari.carouselgifviewer.ui.AppNavigation
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
 import com.bernaferrari.carouselgifviewer.ui.SettingsViewModel
-import com.bernaferrari.carouselgifviewer.ui.accentColors
+import com.bernaferrari.carouselgifviewer.ui.accentGradients
 import com.bernaferrari.carouselgifviewer.ui.theme.CarouselGifViewerTheme
 import platform.UIKit.UIViewController
 
@@ -25,8 +26,13 @@ fun MainViewController(): UIViewController = ComposeUIViewController {
 @Composable
 fun CarouselGifViewerApp() {
     val settingsRepository = remember { SettingsRepository(createDataStore()) }
+    val downloadManager = remember { createDownloadManager() }
     val viewModel = remember {
-        MainViewModel(GifRepository(DatabaseDataSource(), settingsRepository))
+        MainViewModel(
+            repository = GifRepository(DatabaseDataSource(), settingsRepository),
+            settingsRepository = settingsRepository,
+            downloadManager = downloadManager
+        )
     }
     val settingsViewModel = remember {
         SettingsViewModel(settingsRepository)
@@ -39,7 +45,7 @@ fun CarouselGifViewerApp() {
         ThemeMode.Dark -> true
         ThemeMode.MaterialYou -> isSystemInDarkTheme()
     }
-    val accentColor = accentColors.getOrNull(settings.accentColorIndex)?.color
+    val accentColor = accentGradients.getOrNull(settings.accentColorIndex)?.first
     
     CarouselGifViewerTheme(
         darkTheme = isDarkTheme,
@@ -48,6 +54,7 @@ fun CarouselGifViewerApp() {
         AppNavigation(
             mainViewModel = viewModel,
             settingsViewModel = settingsViewModel,
+            downloadManager = downloadManager,
             onShareItem = { title, url -> shareItem(title, url) },
             onOpenBrowser = { url -> openBrowser(url) },
             onClearCache = { /* iOS cache clear */ }

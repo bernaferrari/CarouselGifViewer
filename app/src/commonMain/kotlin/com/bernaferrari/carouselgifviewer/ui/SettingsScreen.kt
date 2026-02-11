@@ -88,8 +88,11 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBackClick: () -> Unit,
     onClearCache: () -> Unit,
+    onClearDownloads: () -> Unit = {},
     onOpenUrl: (String) -> Unit,
-    currentCacheSizeMb: Float = 45f
+    currentCacheSizeMb: Float = 45f,
+    downloadedCount: Int = 0,
+    downloadedSizeMb: Float = 0f
 ) {
     val settings by viewModel.settings.collectAsState()
     val selectedTheme = settings.themeMode
@@ -189,11 +192,24 @@ fun SettingsScreen(
             
             item {
                 PremiumCard {
-                    CacheStorageRow(
-                        currentCacheMb = currentCacheSizeMb,
-                        maxCacheMb = MAX_CACHE_MB,
-                        onClearCache = onClearCache
-                    )
+                    Column {
+                        CacheStorageRow(
+                            currentCacheMb = currentCacheSizeMb,
+                            maxCacheMb = MAX_CACHE_MB,
+                            onClearCache = onClearCache
+                        )
+                        if (downloadedCount > 0) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                            )
+                            DownloadsStorageRow(
+                                downloadedCount = downloadedCount,
+                                downloadedSizeMb = downloadedSizeMb,
+                                onClearDownloads = onClearDownloads
+                            )
+                        }
+                    }
                 }
             }
             
@@ -672,6 +688,49 @@ private fun CacheStorageRow(
             Icon(
                 Icons.Default.Delete,
                 contentDescription = "Clear Cache",
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DownloadsStorageRow(
+    downloadedCount: Int,
+    downloadedSizeMb: Float,
+    onClearDownloads: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClearDownloads)
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                "Offline Downloads",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                "$downloadedCount videos • ${downloadedSizeMb.toInt()}MB",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        IconButton(
+            onClick = onClearDownloads,
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.errorContainer, CircleShape)
+                .size(40.dp)
+        ) {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = "Clear Downloads",
                 tint = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.size(20.dp)
             )

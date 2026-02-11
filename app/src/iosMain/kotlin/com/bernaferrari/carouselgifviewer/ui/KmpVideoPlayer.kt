@@ -40,23 +40,25 @@ import platform.AVFoundation.timeControlStatus
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.CoreMedia.CMTimeMake
 import platform.CoreMedia.CMTimeMakeWithSeconds
+import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURL
+import platform.Foundation.addObserver
+import platform.Foundation.removeObserver
+import platform.Foundation.setValue
 import platform.QuartzCore.CALayer
 import platform.UIKit.UIApplicationDidBecomeActiveNotification
 import platform.UIKit.UIApplicationWillResignActiveNotification
 import platform.UIKit.UIView
 import platform.darwin.NSObject
-import platform.Foundation.NSKeyValueObservingOptionNew
-import platform.Foundation.addObserver
-import platform.Foundation.removeObserver
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun KmpVideoPlayer(
     videoUrl: String,
-    modifier: Modifier
+    modifier: Modifier,
+    playbackSpeed: Float
 ) {
     var isBuffering by remember { mutableStateOf(false) }
     var showLoading by remember { mutableStateOf(false) }
@@ -124,6 +126,17 @@ actual fun KmpVideoPlayer(
             center.removeObserver(willResign)
             center.removeObserver(didBecome)
             player.pause()
+        }
+    }
+    
+    // Apply playback speed
+    LaunchedEffect(playbackSpeed) {
+        // AVPlayer.rate property - use KVC to set the rate
+        // This works around Kotlin/Native's limited property access
+        try {
+            player.setValue(playbackSpeed, forKey = "rate")
+        } catch (e: Exception) {
+            // Fallback: rate setting not supported
         }
     }
 

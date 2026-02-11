@@ -13,5 +13,6 @@ expect fun KmpAsyncImage(
 @Composable
 expect fun KmpVideoPlayer(
     videoUrl: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    playbackSpeed: Float = 1f
 )

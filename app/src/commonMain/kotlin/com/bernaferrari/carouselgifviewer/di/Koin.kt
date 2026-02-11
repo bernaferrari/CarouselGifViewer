@@ -2,6 +2,7 @@ package com.bernaferrari.carouselgifviewer.di
 
 import com.bernaferrari.carouselgifviewer.data.DatabaseDataSource
 import com.bernaferrari.carouselgifviewer.data.DictDataSource
+import com.bernaferrari.carouselgifviewer.data.DownloadManager
 import com.bernaferrari.carouselgifviewer.data.GifRepository
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
 import org.koin.core.context.startKoin
@@ -13,7 +14,9 @@ val dataModule = module {
 }
 
 val viewModelModule = module {
-    factory { MainViewModel(get(), get()) }
+    factory { (downloadManager: DownloadManager) -> 
+        MainViewModel(get(), get(), downloadManager) 
+    }
 }
 
 fun initKoin(

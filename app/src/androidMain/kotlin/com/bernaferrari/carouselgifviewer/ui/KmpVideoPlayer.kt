@@ -8,11 +8,23 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -77,12 +89,16 @@ object VideoCacheManager {
 @Composable
 actual fun KmpVideoPlayer(
     videoUrl: String,
-    modifier: Modifier
+    modifier: Modifier,
+    playbackSpeed: Float
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var isBuffering by remember { mutableStateOf(false) }
     var showLoading by remember { mutableStateOf(false) }
+    var controlsVisible by remember { mutableStateOf(true) }
+    var isMuted by remember { mutableStateOf(true) } // Start muted by default
+    var isPlaying by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
     LaunchedEffect(isBuffering) {
@@ -91,6 +107,14 @@ actual fun KmpVideoPlayer(
             showLoading = true
         } else {
             showLoading = false
+        }
+    }
+    
+    // Auto-hide controls after 3 seconds
+    LaunchedEffect(controlsVisible, isPlaying) {
+        if (controlsVisible && isPlaying) {
+            delay(3000)
+            controlsVisible = false
         }
     }
 
@@ -133,6 +157,7 @@ actual fun KmpVideoPlayer(
                 prepare()
                 playWhenReady = true
                 repeatMode = Player.REPEAT_MODE_ONE
+                volume = 0f // Start muted
                 
                 addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(state: Int) {
@@ -140,12 +165,23 @@ actual fun KmpVideoPlayer(
                     }
                     
                     override fun onIsPlayingChanged(playing: Boolean) {
+                        isPlaying = playing
                         if (playing) {
                             isBuffering = false
                         }
                     }
                 })
             }
+    }
+    
+    // Apply mute/unmute
+    LaunchedEffect(isMuted) {
+        exoPlayer.volume = if (isMuted) 0f else 1f
+    }
+    
+    // Apply playback speed
+    LaunchedEffect(playbackSpeed) {
+        exoPlayer.setPlaybackSpeed(playbackSpeed)
     }
 
     DisposableEffect(lifecycleOwner, exoPlayer) {
@@ -183,7 +219,14 @@ actual fun KmpVideoPlayer(
                     )
                 }
             },
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    controlsVisible = !controlsVisible
+                }
         )
         
         // Loading indicator overlay (only shows after 250ms delay)
@@ -205,6 +248,53 @@ actual fun KmpVideoPlayer(
                     color = MaterialTheme.colorScheme.primary,
                     strokeWidth = 3.dp
                 )
+            }
+        }
+        
+        // Video controls overlay
+        AnimatedVisibility(
+            visible = controlsVisible,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Play/Pause button with proper icon switching
+                IconButton(
+                    onClick = {
+                        if (exoPlayer.isPlaying) {
+                            exoPlayer.pause()
+                        } else {
+                            exoPlayer.play()
+                        }
+                    }
+                ) {
+                    Icon(
+                        if (exoPlayer.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (exoPlayer.isPlaying) "Pause" else "Play",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                // Mute/Unmute button with proper icon switching
+                IconButton(
+                    onClick = { isMuted = !isMuted }
+                ) {
+                    Icon(
+                        if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                        contentDescription = if (isMuted) "Unmute" else "Mute",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }

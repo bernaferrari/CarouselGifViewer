@@ -48,6 +48,7 @@ kotlin {
                 implementation(libs.lifecycle.viewmodel.navigation3)
                 implementation(libs.lifecycle.runtime.compose)
                 implementation(libs.compose.material.icons.core)
+                implementation(libs.compose.material.icons.extended)
 
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)

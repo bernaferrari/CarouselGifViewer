@@ -45,17 +45,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -401,20 +408,91 @@ fun MainScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                if (uiState.isLoading) {
-                    Column(
-                        modifier = Modifier.align(Alignment.Center),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        LoadingSpinner(modifier = Modifier.size(56.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Loading videos...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                when {
+                    // Error state
+                    uiState.error != null -> {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.Error,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Something went wrong",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = uiState.error ?: "Unknown error",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            FilledTonalButton(
+                                onClick = { viewModel.clearError() }
+                            ) {
+                                Icon(
+                                    Icons.Default.Refresh,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Try Again")
+                            }
+                        }
                     }
-                } else {
+                    // Loading state
+                    uiState.isLoading -> {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            LoadingSpinner(modifier = Modifier.size(56.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Loading videos...",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    // Empty state (no search results)
+                    uiState.items.isEmpty() -> {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Outlined.SearchOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "No videos found",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Check your connection and try again",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    // Content
+                    else -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         // Filter chip row
                         AnimatedVisibility(
@@ -510,7 +588,8 @@ fun MainScreen(
                                             if (page == pagerState.currentPage) {
                                                 KmpVideoPlayer(
                                                     videoUrl = item.videoUrl,
-                                                    modifier = Modifier.fillMaxSize()
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    playbackSpeed = uiState.playbackSpeed
                                                 )
                                             } else {
                                                 KmpAsyncImage(
@@ -610,6 +689,72 @@ fun MainScreen(
                                         )
                                     }
 
+                                    // Download button
+                                    val videoId = currentItem?.id
+                                    val isDownloaded = videoId != null && videoId in uiState.downloadedIds
+                                    val downloadProgress = videoId?.let { uiState.downloadProgress[it] }
+                                    val isDownloading = downloadProgress != null && !downloadProgress.isComplete
+
+                                    Box(
+                                        modifier = Modifier.size(48.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        when {
+                                            isDownloading -> {
+                                                // Show progress indicator
+                                                CircularProgressIndicator(
+                                                    progress = { downloadProgress.progress },
+                                                    modifier = Modifier.size(24.dp),
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    strokeWidth = 2.dp
+                                                )
+                                                // Cancel button overlay
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        videoId?.let { viewModel.cancelDownload(it) }
+                                                    },
+                                                    modifier = Modifier.size(48.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Close,
+                                                        contentDescription = "Cancel download",
+                                                        tint = MaterialTheme.colorScheme.error,
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+                                            isDownloaded -> {
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        videoId?.let { viewModel.deleteDownload(it) }
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.DownloadDone,
+                                                        contentDescription = "Downloaded - tap to remove",
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                            else -> {
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        viewModel.downloadCurrentVideo()
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.Download,
+                                                        contentDescription = "Download for offline",
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     IconButton(
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -622,6 +767,29 @@ fun MainScreen(
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
+                                    
+                                    // Speed control
+                                    val speedOptions = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+                                    val currentSpeedIndex = speedOptions.indexOfFirst { it == uiState.playbackSpeed }.coerceAtLeast(0)
+                                    
+                                    IconButton(
+                                        onClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            val nextIndex = (currentSpeedIndex + 1) % speedOptions.size
+                                            viewModel.setPlaybackSpeed(speedOptions[nextIndex])
+                                        }
+                                    ) {
+                                        Text(
+                                            text = if (uiState.playbackSpeed == 1f) "1x" else "${uiState.playbackSpeed}x",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Medium,
+                                            color = if (uiState.playbackSpeed == 1f) 
+                                                MaterialTheme.colorScheme.onSurfaceVariant 
+                                            else 
+                                                MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    
                                     IconButton(
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -683,7 +851,8 @@ fun MainScreen(
                         }
                     }
                 }
-            }
+                    }
+                }
         }
 
         // Info Bottom Sheet

@@ -1,11 +1,10 @@
 package com.bernaferrari.carouselgifviewer.ui.components.shaders
 
 import androidx.compose.ui.Modifier
-import org.intellij.lang.annotations.Language
 import com.bernaferrari.carouselgifviewer.ui.components.runtimeShader
 
 // 9. Silk -> "Velvet Flow" (Smooth flowing silk ribbons)
-@Language("AGSL") private const val SILK_SHADER_AGSL = """
+private const val SILK_SHADER_AGSL = """
     uniform float iTime;
     uniform float2 iResolution;
     

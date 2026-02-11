@@ -1,11 +1,10 @@
 package com.bernaferrari.carouselgifviewer.ui.components.shaders
 
 import androidx.compose.ui.Modifier
-import org.intellij.lang.annotations.Language
 import com.bernaferrari.carouselgifviewer.ui.components.runtimeShader
 
 // 11. Subway -> "Tube Lights" (Dynamic Vertical Flow - Living Map)
-@Language("AGSL") private const val SUBWAY_SHADER_AGSL = """
+private const val SUBWAY_SHADER_AGSL = """
     uniform float iTime;
     uniform float2 iResolution;
 
