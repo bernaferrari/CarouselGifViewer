@@ -17,16 +17,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
@@ -38,9 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultDataSource
@@ -68,7 +77,7 @@ object VideoCacheManager {
         if (cache == null) {
             val cacheDir = File(context.cacheDir, "video_cache")
             val evictor = LeastRecentlyUsedCacheEvictor(CACHE_SIZE_BYTES)
-            val databaseProvider = StandaloneDatabaseProvider(context)
+            val databaseProvider = StandaloneDatabaseProvider(context.applicationContext)
             cache = SimpleCache(cacheDir, evictor, databaseProvider)
         }
         return cache!!
@@ -86,14 +95,21 @@ object VideoCacheManager {
 actual fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier,
-    playbackSpeed: Float
+    playbackSpeed: Float,
+    posterUrl: String?,
+    playbackEnabled: Boolean,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var isBuffering by remember { mutableStateOf(false) }
+    var requestedPlaying by rememberSaveable(videoUrl) { mutableStateOf(true) }
+    val currentRequestedPlaying by rememberUpdatedState(requestedPlaying)
+    val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled)
+    var firstFrameRendered by remember(videoUrl) { mutableStateOf(false) }
+    var playbackFailed by remember(videoUrl) { mutableStateOf(false) }
+    var isBuffering by remember(videoUrl) { mutableStateOf(true) }
     var showLoading by remember { mutableStateOf(false) }
-    var controlsVisible by remember { mutableStateOf(true) }
-    var isMuted by remember { mutableStateOf(true) } // Start muted by default
+    var controlsVisible by rememberSaveable(videoUrl) { mutableStateOf(true) }
+    var isMuted by rememberSaveable(videoUrl) { mutableStateOf(true) } // Start muted by default
     var isPlaying by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
@@ -151,7 +167,7 @@ actual fun KmpVideoPlayer(
                 val mediaItem = MediaItem.fromUri(videoUrl)
                 setMediaItem(mediaItem)
                 prepare()
-                playWhenReady = true
+                playWhenReady = playbackEnabled && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
                 repeatMode = Player.REPEAT_MODE_ONE
                 volume = 0f // Start muted
                 
@@ -160,6 +176,15 @@ actual fun KmpVideoPlayer(
                         isBuffering = state == Player.STATE_BUFFERING
                     }
                     
+                    override fun onRenderedFirstFrame() {
+                        firstFrameRendered = true
+                    }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        playbackFailed = true
+                        isBuffering = false
+                    }
+
                     override fun onIsPlayingChanged(playing: Boolean) {
                         isPlaying = playing
                         if (playing) {
@@ -170,13 +195,18 @@ actual fun KmpVideoPlayer(
             }
     }
     
+    LaunchedEffect(exoPlayer, playbackEnabled, requestedPlaying) {
+        exoPlayer.playWhenReady = playbackEnabled && requestedPlaying &&
+            lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+    }
+
     // Apply mute/unmute
-    LaunchedEffect(isMuted) {
+    LaunchedEffect(exoPlayer, isMuted) {
         exoPlayer.volume = if (isMuted) 0f else 1f
     }
     
     // Apply playback speed
-    LaunchedEffect(playbackSpeed) {
+    LaunchedEffect(exoPlayer, playbackSpeed) {
         exoPlayer.setPlaybackSpeed(playbackSpeed)
     }
 
@@ -191,7 +221,7 @@ actual fun KmpVideoPlayer(
             }
 
             override fun onResume(owner: LifecycleOwner) {
-                exoPlayer.playWhenReady = true
+                exoPlayer.playWhenReady = currentRequestedPlaying && currentPlaybackEnabled
             }
         }
 
@@ -215,8 +245,11 @@ actual fun KmpVideoPlayer(
                     )
                 }
             },
+            update = { view -> view.player = exoPlayer },
+            onRelease = { view -> view.player = null },
             modifier = Modifier
                 .fillMaxSize()
+                .testTag("videoSurface")
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -225,9 +258,30 @@ actual fun KmpVideoPlayer(
                 }
         )
         
+        if (!firstFrameRendered && posterUrl != null) {
+            KmpAsyncImage(posterUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
+        }
+        if (playbackFailed) {
+            Column(
+                modifier = Modifier.align(Alignment.Center)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Video unavailable", color = MaterialTheme.colorScheme.onSurface)
+                FilledTonalButton(enabled = playbackEnabled, onClick = {
+                    playbackFailed = false
+                    isBuffering = true
+                    exoPlayer.prepare()
+                    exoPlayer.playWhenReady = currentRequestedPlaying && currentPlaybackEnabled
+                }) { Text("Retry") }
+            }
+        }
+
         // Loading indicator overlay (only shows after 250ms delay)
         AnimatedVisibility(
-            visible = showLoading && isBuffering,
+            visible = playbackEnabled && showLoading && isBuffering,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center)
@@ -249,7 +303,7 @@ actual fun KmpVideoPlayer(
         
         // Video controls overlay
         AnimatedVisibility(
-            visible = controlsVisible,
+            visible = controlsVisible && playbackEnabled,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier
@@ -267,16 +321,13 @@ actual fun KmpVideoPlayer(
                 // Play/Pause button with proper icon switching
                 IconButton(
                     onClick = {
-                        if (exoPlayer.isPlaying) {
-                            exoPlayer.pause()
-                        } else {
-                            exoPlayer.play()
-                        }
+                        requestedPlaying = !requestedPlaying
+                        exoPlayer.playWhenReady = requestedPlaying && playbackEnabled
                     }
                 ) {
                     Icon(
-                        if (exoPlayer.isPlaying) AppIcons.Pause else AppIcons.PlayArrow,
-                        contentDescription = if (exoPlayer.isPlaying) "Pause" else "Play",
+                        if (requestedPlaying) AppIcons.Pause else AppIcons.PlayArrow,
+                        contentDescription = if (requestedPlaying) "Pause" else "Play",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }

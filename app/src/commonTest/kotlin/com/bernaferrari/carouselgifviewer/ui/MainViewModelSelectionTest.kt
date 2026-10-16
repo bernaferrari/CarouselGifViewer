@@ -53,6 +53,7 @@ class MainViewModelSelectionTest {
             assertEquals("b", vm.uiState.value.currentItem?.id)
         } finally {
             store.clear()
+            runCurrent()
             Dispatchers.resetMain()
         }
     }
@@ -71,14 +72,15 @@ class MainViewModelSelectionTest {
             assertNull(vm.uiState.value.currentItem)
         } finally {
             store.clear()
+            runCurrent()
             Dispatchers.resetMain()
         }
     }
 
     private fun item(id: String) = GifItem(id, id, "https://example.com/$id.mp4", "https://example.com/$id.jpg")
     private class Source(items: List<GifItem>) : DictDataSource {
-        val items = MutableStateFlow(items)
-        override fun getItems() = items
+        val entries = MutableStateFlow(items)
+        override fun getItems() = entries
     }
     private class MemoryPreferences(initial: Preferences = emptyPreferences()) : DataStore<Preferences> {
         override val data = MutableStateFlow(initial)

@@ -95,6 +95,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.CollectionItemInfo
@@ -405,6 +406,7 @@ fun MainScreen(
                     title = {
                         Text(
                             text = uiState.items.getOrNull(pagerState.currentPage)?.title ?: "",
+                            modifier = Modifier.testTag("carouselTitle"),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             fontWeight = FontWeight.SemiBold
@@ -624,7 +626,7 @@ fun MainScreen(
                                 state = pagerState,
                                 key = { page -> uiState.items[page].id },
                                 userScrollEnabled = carouselReady,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().testTag("carouselPager"),
                                 contentPadding = PaddingValues(horizontal = 24.dp),
                                 pageSpacing = 4.dp
                             ) { page ->
@@ -666,14 +668,13 @@ fun MainScreen(
                                                 .fillMaxSize()
                                                 .clip(RoundedCornerShape(24.dp))
                                         ) {
-                                            if (page == pagerState.currentPage &&
-                                                !listState.isScrollInProgress &&
-                                                !pagerState.isScrollInProgress
-                                            ) {
+                                            if (page == pagerState.settledPage && carouselReady) {
                                                 KmpVideoPlayer(
                                                     videoUrl = item.videoUrl,
                                                     modifier = Modifier.fillMaxSize(),
-                                                    playbackSpeed = uiState.playbackSpeed
+                                                    playbackSpeed = uiState.playbackSpeed,
+                                                    posterUrl = item.thumbnailUrl,
+                                                    playbackEnabled = !pagerState.isScrollInProgress,
                                                 )
                                             } else {
                                                 KmpAsyncImage(
@@ -721,9 +722,12 @@ fun MainScreen(
 
 
 
-                            // Action toolbar
+                            // Actions always address the committed, visible item, never a passing preview.
+                            val actionsEnabled = carouselReady && !pagerState.isScrollInProgress &&
+                                navigation.requestedPage == null &&
+                                uiState.currentItem?.id == uiState.items.getOrNull(pagerState.currentPage)?.id
                             val toolbarAlpha by animateFloatAsState(
-                                targetValue = if (pagerState.isScrollInProgress || listState.isScrollInProgress) 0.4f else 1f,
+                                targetValue = if (actionsEnabled) 1f else 0.4f,
                                 animationSpec = tween(150),
                                 label = "toolbarAlpha"
                             )
@@ -757,6 +761,7 @@ fun MainScreen(
                                     )
 
                                     IconButton(
+                                        enabled = actionsEnabled,
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             currentItem?.let { viewModel.toggleFavorite(it.id) }
@@ -794,6 +799,7 @@ fun MainScreen(
                                                 )
                                                 // Cancel button overlay
                                                 IconButton(
+                                                    enabled = actionsEnabled,
                                                     onClick = {
                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         videoId?.let { viewModel.cancelDownload(it) }
@@ -810,6 +816,7 @@ fun MainScreen(
                                             }
                                             isDownloaded -> {
                                                 IconButton(
+                                                    enabled = actionsEnabled,
                                                     onClick = {
                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         videoId?.let { viewModel.deleteDownload(it) }
@@ -824,6 +831,7 @@ fun MainScreen(
                                             }
                                             else -> {
                                                 IconButton(
+                                                    enabled = actionsEnabled,
                                                     onClick = {
                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         viewModel.downloadCurrentVideo()
@@ -840,6 +848,7 @@ fun MainScreen(
                                     }
 
                                     IconButton(
+                                        enabled = actionsEnabled,
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             showInfoSheet = true
@@ -857,6 +866,7 @@ fun MainScreen(
                                     val currentSpeedIndex = speedOptions.indexOfFirst { it == uiState.playbackSpeed }.coerceAtLeast(0)
                                     
                                     IconButton(
+                                        enabled = actionsEnabled,
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             val nextIndex = (currentSpeedIndex + 1) % speedOptions.size
@@ -875,6 +885,7 @@ fun MainScreen(
                                     }
                                     
                                     IconButton(
+                                        enabled = actionsEnabled,
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             uiState.currentItem?.let { item ->
@@ -911,6 +922,7 @@ fun MainScreen(
                                 state = listState,
                                 modifier = Modifier
                                     .fillMaxSize()
+                                    .testTag("carouselScrubber")
                                     .onPreviewKeyEvent { event ->
                                         if (event.type != KeyEventType.KeyDown || !carouselReady) false
                                         else when (event.key) {
@@ -976,6 +988,13 @@ fun MainScreen(
                                     )
                                 }
                             }
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .size(itemSize)
+                                    .border(3.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+                                    .clearAndSetSemantics {}
+                            )
                         }
                     }
                 }
@@ -1276,20 +1295,13 @@ private fun ScrubberItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.7f)
-                        )
-                    )
-                )
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
@@ -1297,16 +1309,5 @@ private fun ScrubberItem(
             )
         }
 
-        // Fade the border in its own layer without invalidating composition or layout.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = progress.value }
-                .border(
-                    width = 3.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(12.dp)
-                )
-        )
     }
 }

@@ -10,14 +10,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,15 +37,16 @@ import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.AVPlayerLayer
 import platform.AVFoundation.AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate
-import platform.AVFoundation.addPeriodicTimeObserverForInterval
 import platform.AVFoundation.currentItem
 import platform.AVFoundation.pause
 import platform.AVFoundation.play
-import platform.AVFoundation.removeTimeObserver
+import platform.AVFoundation.muted
+import platform.AVFoundation.rate
+import platform.AVFoundation.AVPlayerItemStatusFailed
+import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.AVFoundation.seekToTime
 import platform.AVFoundation.timeControlStatus
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
-import platform.CoreMedia.CMTimeMake
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSNotificationCenter
@@ -46,7 +54,6 @@ import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURL
 import platform.Foundation.addObserver
 import platform.Foundation.removeObserver
-import platform.Foundation.setValue
 import platform.QuartzCore.CALayer
 import platform.UIKit.UIApplicationDidBecomeActiveNotification
 import platform.UIKit.UIApplicationWillResignActiveNotification
@@ -58,9 +65,14 @@ import platform.darwin.NSObject
 actual fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier,
-    playbackSpeed: Float
+    playbackSpeed: Float,
+    posterUrl: String?,
+    playbackEnabled: Boolean,
 ) {
-    var isBuffering by remember { mutableStateOf(false) }
+    var isBuffering by remember(videoUrl) { mutableStateOf(true) }
+    var playbackFailed by remember(videoUrl) { mutableStateOf(false) }
+    val currentSpeed by rememberUpdatedState(playbackSpeed)
+    val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled)
     var showLoading by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
@@ -73,23 +85,17 @@ actual fun KmpVideoPlayer(
         }
     }
     
+    var firstFrameRendered by remember(videoUrl) { mutableStateOf(false) }
     val player = remember(videoUrl) {
         val url = NSURL.URLWithString(videoUrl)!!
         val playerItem = AVPlayerItem(url)
-        AVPlayer(playerItem)
+        AVPlayer(playerItem).apply { muted = true }
     }
     
+    val videoLayer = remember(player) { AVPlayerLayer.playerLayerWithPlayer(player) }
+
     DisposableEffect(player) {
         val center = NSNotificationCenter.defaultCenter
-        
-        // Observe player time control status for loading state
-        val timeObserver = player.addPeriodicTimeObserverForInterval(
-            interval = CMTimeMake(1, 10),
-            queue = null
-        ) { _ ->
-            val status = player.timeControlStatus
-            isBuffering = status == AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate
-        }
         
         // Loop playback
         val loopObserver = center.addObserverForName(
@@ -98,7 +104,10 @@ actual fun KmpVideoPlayer(
             queue = NSOperationQueue.mainQueue
         ) { _ ->
             player.seekToTime(CMTimeMakeWithSeconds(0.0, 1000000000))
-            player.play()
+            if (currentPlaybackEnabled) {
+                player.play()
+                player.rate = currentSpeed
+            }
         }
         
         // App lifecycle handling
@@ -115,13 +124,18 @@ actual fun KmpVideoPlayer(
             `object` = null,
             queue = NSOperationQueue.mainQueue
         ) { _ ->
-            player.play()
+            if (currentPlaybackEnabled) {
+                player.play()
+                player.rate = currentSpeed
+            }
         }
         
-        player.play()
-        
+        if (currentPlaybackEnabled) {
+            player.play()
+            player.rate = currentSpeed
+        }
+
         onDispose {
-            player.removeTimeObserver(timeObserver)
             center.removeObserver(loopObserver)
             center.removeObserver(willResign)
             center.removeObserver(didBecome)
@@ -129,14 +143,22 @@ actual fun KmpVideoPlayer(
         }
     }
     
-    // Apply playback speed
-    LaunchedEffect(playbackSpeed) {
-        // AVPlayer.rate property - use KVC to set the rate
-        // This works around Kotlin/Native's limited property access
-        try {
-            player.setValue(playbackSpeed, forKey = "rate")
-        } catch (e: Exception) {
-            // Fallback: rate setting not supported
+    LaunchedEffect(player, playbackSpeed, playbackEnabled) {
+        if (playbackEnabled) {
+            player.play()
+            player.rate = playbackSpeed
+        } else {
+            player.pause()
+        }
+    }
+
+    LaunchedEffect(player) {
+        while (isActive) {
+            firstFrameRendered = videoLayer.readyForDisplay
+            playbackFailed = player.currentItem?.status == AVPlayerItemStatusFailed
+            isBuffering = !playbackFailed &&
+                (!firstFrameRendered || player.timeControlStatus == AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate)
+            delay(200)
         }
     }
 
@@ -145,22 +167,43 @@ actual fun KmpVideoPlayer(
         UIKitView(
             factory = {
                 val container = UIView()
-                val playerLayer = AVPlayerLayer.playerLayerWithPlayer(player)
-                playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-                container.layer.addSublayer(playerLayer)
+                videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+                container.layer.addSublayer(videoLayer)
                 container
             },
             update = { view ->
                 // Update layer frame when view bounds change
-                val playerLayer = view.layer.sublayers?.firstOrNull() as? AVPlayerLayer
-                playerLayer?.frame = view.bounds
+                videoLayer.frame = view.bounds
             },
             modifier = Modifier.fillMaxSize()
         )
         
+        if (!firstFrameRendered && posterUrl != null) {
+            KmpAsyncImage(posterUrl, contentDescription = null, modifier = Modifier.fillMaxSize())
+        }
+
+        if (playbackFailed) {
+            Column(
+                modifier = Modifier.align(Alignment.Center)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("Video unavailable", color = MaterialTheme.colorScheme.onSurface)
+                FilledTonalButton(onClick = {
+                    firstFrameRendered = false
+                    playbackFailed = false
+                    player.replaceCurrentItemWithPlayerItem(AVPlayerItem(NSURL.URLWithString(videoUrl)!!))
+                    player.play()
+                    player.rate = currentSpeed
+                }) { Text("Retry") }
+            }
+        }
+
         // Loading indicator overlay (only shows after 250ms delay)
         AnimatedVisibility(
-            visible = showLoading && isBuffering,
+            visible = playbackEnabled && showLoading && isBuffering,
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align(Alignment.Center)

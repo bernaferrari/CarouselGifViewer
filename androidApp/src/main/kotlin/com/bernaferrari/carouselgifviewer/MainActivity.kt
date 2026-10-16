@@ -16,12 +16,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.bernaferrari.carouselgifviewer.data.DatabaseDataSource
 import com.bernaferrari.carouselgifviewer.data.GifRepository
-import com.bernaferrari.carouselgifviewer.data.SettingsRepository
 import com.bernaferrari.carouselgifviewer.data.ThemeMode
-import com.bernaferrari.carouselgifviewer.data.createDataStore
-import com.bernaferrari.carouselgifviewer.data.createDownloadManager
 import com.bernaferrari.carouselgifviewer.ui.AppNavigation
 import com.bernaferrari.carouselgifviewer.ui.MainViewModel
 import com.bernaferrari.carouselgifviewer.ui.SettingsViewModel
@@ -34,18 +34,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val settingsRepository = remember { SettingsRepository(createDataStore(this@MainActivity)) }
-            val downloadManager = remember { createDownloadManager(this@MainActivity) }
-            val viewModel = remember {
-                MainViewModel(
-                    repository = GifRepository(DatabaseDataSource(), settingsRepository),
-                    settingsRepository = settingsRepository,
-                    downloadManager = downloadManager
-                )
+            val app = application as MainApplication
+            val settingsRepository = app.settingsRepository
+            val downloadManager = app.downloadManager
+            val models = remember {
+                ViewModelProvider(this@MainActivity, viewModelFactory {
+                    initializer {
+                        MainViewModel(
+                            repository = GifRepository(DatabaseDataSource(), settingsRepository),
+                            settingsRepository = settingsRepository,
+                            downloadManager = downloadManager,
+                        )
+                    }
+                    initializer { SettingsViewModel(settingsRepository) }
+                })
             }
-            val settingsViewModel = remember {
-                SettingsViewModel(settingsRepository)
-            }
+            val viewModel = remember { models[MainViewModel::class.java] }
+            val settingsViewModel = remember { models[SettingsViewModel::class.java] }
             val settings by settingsViewModel.settings.collectAsState()
             
             val isDarkTheme = when (settings.themeMode) {
