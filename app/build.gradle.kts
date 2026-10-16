@@ -10,9 +10,13 @@ plugins {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.bernaferrari.carouselgifviewer.library"
-        compileSdk = 36
+        compileSdk {
+            version = release(37) {
+                minorApiLevel = 2
+            }
+        }
         minSdk = 24
 
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -47,8 +51,8 @@ kotlin {
                 implementation(libs.navigation3.ui)
                 implementation(libs.lifecycle.viewmodel.navigation3)
                 implementation(libs.lifecycle.runtime.compose)
-                implementation(libs.compose.material.icons.core)
-                implementation(libs.compose.material.icons.extended)
+
+
 
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)
@@ -61,7 +65,6 @@ kotlin {
 
                 implementation(libs.kotlinx.coroutines.core)
 
-                implementation(libs.mediaplayer.kmp)
                 implementation(libs.datastore.preferences)
             }
         }

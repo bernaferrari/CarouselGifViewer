@@ -29,11 +29,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.bernaferrari.carouselgifviewer.ui.icons.AppIcons
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -114,7 +110,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.ArrowBack,
                             contentDescription = "Back"
                         )
                     }
@@ -620,7 +616,7 @@ private fun ShaderOptionCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.Check,
+                        AppIcons.Check,
                         contentDescription = "Selected",
                         tint = accentColor,
                         modifier = Modifier.size(16.dp)
@@ -686,7 +682,7 @@ private fun CacheStorageRow(
                 .size(40.dp)
         ) {
             Icon(
-                Icons.Default.Delete,
+                AppIcons.Delete,
                 contentDescription = "Clear Cache",
                 tint = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.size(20.dp)
@@ -729,7 +725,7 @@ private fun DownloadsStorageRow(
                 .size(40.dp)
         ) {
             Icon(
-                Icons.Default.Delete,
+                AppIcons.Delete,
                 contentDescription = "Clear Downloads",
                 tint = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.size(20.dp)
@@ -757,7 +753,7 @@ private fun CompactLinkItem(
             fontWeight = FontWeight.Medium
         )
         Icon(
-            Icons.AutoMirrored.Filled.ArrowBack,
+            AppIcons.ArrowBack,
             contentDescription = null,
             modifier = Modifier
                 .size(16.dp)

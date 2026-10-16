@@ -6,7 +6,11 @@ plugins {
 
 android {
     namespace = "com.bernaferrari.carouselgifviewer"
-    compileSdk = 36
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     defaultConfig {
         applicationId = "com.bernaferrari.carouselgifviewer"

@@ -41,22 +41,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.DownloadDone
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -91,6 +75,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.bernaferrari.carouselgifviewer.ui.icons.AppIcons
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -251,7 +236,7 @@ fun MainScreen(
                 placeholder = { Text("Search") },
                 leadingIcon = {
                     Icon(
-                        Icons.Default.Search,
+                        AppIcons.Search,
                         contentDescription = "Search",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -260,7 +245,7 @@ fun MainScreen(
                     if (drawerQuery.isNotEmpty()) {
                         IconButton(onClick = { drawerQuery = "" }) {
                             Icon(
-                                Icons.Default.Close,
+                                AppIcons.Close,
                                 contentDescription = "Clear search",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -337,7 +322,7 @@ fun MainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        Icons.Default.Favorite,
+                                        AppIcons.Favorite,
                                         contentDescription = null,
                                         modifier = Modifier.size(10.dp),
                                         tint = MaterialTheme.colorScheme.onPrimary
@@ -379,7 +364,7 @@ fun MainScreen(
                         if (showMenuButton) {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(
-                                    Icons.Default.Menu,
+                                    AppIcons.Menu,
                                     contentDescription = "Menu",
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
@@ -389,7 +374,7 @@ fun MainScreen(
                     actions = {
                         IconButton(onClick = onOpenSettings) {
                             Icon(
-                                Icons.Default.Settings,
+                                AppIcons.Settings,
                                 contentDescription = "Settings",
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -418,7 +403,7 @@ fun MainScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                Icons.Default.Error,
+                                AppIcons.Error,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
                                 tint = MaterialTheme.colorScheme.error
@@ -441,7 +426,7 @@ fun MainScreen(
                                 onClick = { viewModel.clearError() }
                             ) {
                                 Icon(
-                                    Icons.Default.Refresh,
+                                    AppIcons.Refresh,
                                     contentDescription = null,
                                     modifier = Modifier.size(18.dp)
                                 )
@@ -472,7 +457,7 @@ fun MainScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                Icons.Outlined.SearchOff,
+                                AppIcons.SearchOff,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -511,12 +496,12 @@ fun MainScreen(
                                         leadingIcon = {
                                             when {
                                                 category.id == "all" -> Icon(
-                                                    Icons.Default.Search,
+                                                    AppIcons.Search,
                                                     contentDescription = null,
                                                     modifier = Modifier.size(18.dp)
                                                 )
                                                 category.id == "favorites" -> Icon(
-                                                    Icons.Default.Favorite,
+                                                    AppIcons.Favorite,
                                                     contentDescription = null,
                                                     modifier = Modifier.size(18.dp)
                                                 )
@@ -557,14 +542,14 @@ fun MainScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            Icons.Default.Favorite,
+                                            AppIcons.Favorite,
                                             contentDescription = null,
                                             modifier = Modifier.size(18.dp)
                                         )
                                     },
                                     trailingIcon = {
                                         Icon(
-                                            Icons.Default.Close,
+                                            AppIcons.Close,
                                             contentDescription = "Clear filter",
                                             modifier = Modifier.size(18.dp)
                                         )
@@ -644,7 +629,7 @@ fun MainScreen(
                             // Navigation buttons
                             if (pagerState.currentPage > 0) {
                                 AnimatedIconButton(
-                                    icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                    icon = AppIcons.KeyboardArrowLeft,
                                     contentDescription = "Previous",
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -659,7 +644,7 @@ fun MainScreen(
                             }
                             if (pagerState.currentPage < uiState.items.lastIndex) {
                                 AnimatedIconButton(
-                                    icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    icon = AppIcons.KeyboardArrowRight,
                                     contentDescription = "Next",
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -717,7 +702,7 @@ fun MainScreen(
                                         }
                                     ) {
                                         Icon(
-                                            if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                            if (isFavorite) AppIcons.Favorite else AppIcons.FavoriteBorder,
                                             contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                                             tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.graphicsLayer {
@@ -755,7 +740,7 @@ fun MainScreen(
                                                     modifier = Modifier.size(48.dp)
                                                 ) {
                                                     Icon(
-                                                        Icons.Default.Close,
+                                                        AppIcons.Close,
                                                         contentDescription = "Cancel download",
                                                         tint = MaterialTheme.colorScheme.error,
                                                         modifier = Modifier.size(20.dp)
@@ -770,7 +755,7 @@ fun MainScreen(
                                                     }
                                                 ) {
                                                     Icon(
-                                                        Icons.Default.DownloadDone,
+                                                        AppIcons.DownloadDone,
                                                         contentDescription = "Downloaded - tap to remove",
                                                         tint = MaterialTheme.colorScheme.primary
                                                     )
@@ -784,7 +769,7 @@ fun MainScreen(
                                                     }
                                                 ) {
                                                     Icon(
-                                                        Icons.Default.Download,
+                                                        AppIcons.Download,
                                                         contentDescription = "Download for offline",
                                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
@@ -800,7 +785,7 @@ fun MainScreen(
                                         }
                                     ) {
                                         Icon(
-                                            Icons.Outlined.Info,
+                                            AppIcons.Info,
                                             contentDescription = "Info",
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -837,7 +822,7 @@ fun MainScreen(
                                         }
                                     ) {
                                         Icon(
-                                            Icons.Default.Share,
+                                            AppIcons.Share,
                                             contentDescription = "Share",
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -1162,7 +1147,7 @@ private fun ScrubberItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Favorite,
+                    AppIcons.Favorite,
                     contentDescription = null,
                     modifier = Modifier.size(8.dp),
                     tint = Color.White

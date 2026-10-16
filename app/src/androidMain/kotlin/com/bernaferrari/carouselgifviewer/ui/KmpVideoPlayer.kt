@@ -17,11 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +31,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.bernaferrari.carouselgifviewer.ui.icons.AppIcons
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -279,7 +275,7 @@ actual fun KmpVideoPlayer(
                     }
                 ) {
                     Icon(
-                        if (exoPlayer.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        if (exoPlayer.isPlaying) AppIcons.Pause else AppIcons.PlayArrow,
                         contentDescription = if (exoPlayer.isPlaying) "Pause" else "Play",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
@@ -290,7 +286,7 @@ actual fun KmpVideoPlayer(
                     onClick = { isMuted = !isMuted }
                 ) {
                     Icon(
-                        if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                        if (isMuted) AppIcons.VolumeOff else AppIcons.VolumeUp,
                         contentDescription = if (isMuted) "Unmute" else "Mute",
                         tint = MaterialTheme.colorScheme.onSurface
                     )

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.asComposeShader
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
 
@@ -55,7 +56,7 @@ actual fun Modifier.runtimeShader(
             provider.uniforms(time, size.width, size.height)
             
             val shader = builder.makeShader()
-            val brush = ShaderBrush(shader)
+            val brush = ShaderBrush(shader.asComposeShader())
             
             drawRect(brush)
         }
