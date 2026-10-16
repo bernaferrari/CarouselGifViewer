@@ -16,7 +16,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,15 +76,39 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.bernaferrari.carouselgifviewer.ui.icons.AppIcons
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.ScrollAxisRange
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.horizontalScrollAxisRange
+import androidx.compose.ui.semantics.scrollBy
+import androidx.compose.ui.semantics.scrollToIndex
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
@@ -101,7 +128,10 @@ import com.bernaferrari.carouselgifviewer.ui.components.GlassmorphicSurface
 import com.bernaferrari.carouselgifviewer.ui.components.LoadingSpinner
 import com.bernaferrari.carouselgifviewer.ui.components.ShaderBackground
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.time.TimeSource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -127,23 +157,28 @@ fun MainScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    val centeredScrubberIndex by remember(listState) {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            if (layoutInfo.visibleItemsInfo.isEmpty()) return@derivedStateOf 0
-            val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
-            layoutInfo.visibleItemsInfo.minByOrNull { item ->
-                abs((item.offset + item.size / 2) - viewportCenter)
-            }?.index ?: 0
+    val navigation = remember(pagerState, scope) { CarouselNavigation(pagerState, scope) }
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val itemStepPx = with(density) { 106.dp.toPx() }
+    val itemIds = remember(uiState.items) { uiState.items.map { it.id } }
+    var savedSelectionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var committedIndex by remember { mutableStateOf(-1) }
+    var carouselReady by remember { mutableStateOf(false) }
+    val stripScrollState = remember(pagerState, itemStepPx) {
+        ScaledScrollableState(pagerState) {
+            (pagerState.layoutInfo.pageSize + pagerState.layoutInfo.pageSpacing).toFloat() / itemStepPx
         }
     }
-
-    val isUserScrollingScrubber by remember {
-        derivedStateOf { listState.isScrollInProgress }
+    val stripSnapLayout = remember(pagerState, itemStepPx, density) {
+        CarouselSnapLayout(
+            position = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
+            pageCount = { pagerState.pageCount },
+            itemStep = { itemStepPx },
+            minimumFlingVelocity = with(density) { 400.dp.toPx() },
+        )
     }
-
-    var pagerIsDriving by remember { mutableStateOf(false) }
-    var lastHapticIndex by remember { mutableStateOf(-1) }
+    val stripFlingBehavior = rememberSnapFlingBehavior(stripSnapLayout)
 
     // Close keyboard when drawer closes
     LaunchedEffect(drawerState.isOpen) {
@@ -153,54 +188,69 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(centeredScrubberIndex, isUserScrollingScrubber) {
-        if (isUserScrollingScrubber && !pagerIsDriving && uiState.items.isNotEmpty()) {
-            val target = centeredScrubberIndex.coerceIn(0, uiState.items.lastIndex)
-            if (pagerState.currentPage != target) {
-                pagerState.scrollToPage(target)
+    // Restore by identity, and reconcile inserts/removals before accepting gestures.
+    LaunchedEffect(itemIds, uiState.isLoading) {
+        carouselReady = false
+        navigation.cancel()
+        if (uiState.isLoading) return@LaunchedEffect
+        val target = resolveCarouselSelection(itemIds, savedSelectionId, uiState.selectedIndex)
+            ?: return@LaunchedEffect
+        pagerState.scrollToPage(target)
+        listState.scrollToItem(target)
+        committedIndex = target
+        savedSelectionId = itemIds[target]
+        viewModel.setSelectedIndex(target)
+        carouselReady = true
+    }
+
+    // The strip is a projection of the pager. It has no independent gesture or fling to fight.
+    LaunchedEffect(pagerState, listState, itemStepPx) {
+        snapshotFlow {
+            if (carouselReady) pagerState.currentPage to pagerState.currentPageOffsetFraction else null
+        }.collectLatest { position ->
+            if (position != null && pagerState.pageCount > 0) {
+                listState.scrollToItem(position.first, (position.second * itemStepPx).roundToInt())
             }
-            if (target != lastHapticIndex) {
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        var lastPage = pagerState.currentPage
+        var lastTick = TimeSource.Monotonic.markNow()
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            // Skip the initial tick and rate-limit fast flings instead of buzzing on every frame.
+            if (carouselReady && pagerState.isScrollInProgress && page != lastPage &&
+                lastTick.elapsedNow().inWholeMilliseconds >= 60
+            ) {
                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                lastHapticIndex = target
+                lastTick = TimeSource.Monotonic.markNow()
             }
+            lastPage = page
         }
     }
 
-    LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-        if (pagerState.isScrollInProgress && uiState.items.isNotEmpty()) {
-            pagerIsDriving = true
-            val target = pagerState.currentPage.coerceIn(0, uiState.items.lastIndex)
-            listState.animateScrollToItem(target)
-        } else {
-            pagerIsDriving = false
-        }
-    }
-
-    LaunchedEffect(pagerState.settledPage) {
-        if (uiState.items.isNotEmpty()) {
-            viewModel.setSelectedIndex(pagerState.settledPage.coerceIn(0, uiState.items.lastIndex))
+    LaunchedEffect(pagerState, itemIds) {
+        snapshotFlow {
+            if (carouselReady && !pagerState.isScrollInProgress && navigation.requestedPage == null) {
+                pagerState.settledPage
+            } else null
+        }.collect { page ->
+            if (page != null && page in itemIds.indices) {
+                committedIndex = page
+                savedSelectionId = itemIds[page]
+                viewModel.setSelectedIndex(page)
+            }
         }
     }
 
     LaunchedEffect(uiState.selectedIndex) {
-        if (uiState.items.isNotEmpty() && uiState.selectedIndex != pagerState.currentPage) {
-            pagerState.scrollToPage(uiState.selectedIndex)
-            listState.scrollToItem(uiState.selectedIndex)
+        if (carouselReady && uiState.selectedIndex != committedIndex) {
+            navigation.moveTo(uiState.selectedIndex, animated = false)
         }
     }
 
     fun navigateTo(index: Int) {
-        if (uiState.items.isEmpty()) return
-        val target = index.coerceIn(0, uiState.items.lastIndex)
-        pagerIsDriving = true
-        scope.launch {
-            launch { pagerState.animateScrollToPage(target) }
-            launch {
-                listState.scrollToItem(target)
-                listState.animateScrollToItem(index = target, scrollOffset = 0)
-            }
-        }.invokeOnCompletion { pagerIsDriving = false }
-        viewModel.setSelectedIndex(target)
+        if (carouselReady) navigation.moveTo(index)
     }
 
     // Drawer content composable (shared between modal and permanent)
@@ -354,7 +404,7 @@ fun MainScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = uiState.currentItem?.title ?: "",
+                            text = uiState.items.getOrNull(pagerState.currentPage)?.title ?: "",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             fontWeight = FontWeight.SemiBold
@@ -572,22 +622,30 @@ fun MainScreen(
                         ) {
                             HorizontalPager(
                                 state = pagerState,
+                                key = { page -> uiState.items[page].id },
+                                userScrollEnabled = carouselReady,
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = PaddingValues(horizontal = 24.dp),
                                 pageSpacing = 4.dp
                             ) { page ->
                                 val item = uiState.items.getOrNull(page) ?: return@HorizontalPager
 
-                                val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                                val scale = 0.85f + (1f - abs(pageOffset).coerceIn(0f, 1f)) * 0.15f
+                                val isCentered by remember(pagerState, page) {
+                                    derivedStateOf {
+                                        abs((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction) < 0.5f
+                                    }
+                                }
 
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .graphicsLayer {
+                                            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                                            val proximity = 1f - abs(pageOffset).coerceIn(0f, 1f)
+                                            val scale = 0.85f + proximity * 0.15f
                                             scaleX = scale
                                             scaleY = scale
-                                            alpha = 0.5f + (1f - abs(pageOffset).coerceIn(0f, 1f)) * 0.5f
+                                            alpha = 0.5f + proximity * 0.5f
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -597,7 +655,7 @@ fun MainScreen(
                                             .aspectRatio(1f),
                                         shape = RoundedCornerShape(24.dp),
                                         elevation = CardDefaults.cardElevation(
-                                            defaultElevation = if (abs(pageOffset) < 0.5f) 12.dp else 4.dp
+                                            defaultElevation = if (isCentered) 12.dp else 4.dp
                                         ),
                                         colors = CardDefaults.cardColors(
                                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
@@ -608,7 +666,10 @@ fun MainScreen(
                                                 .fillMaxSize()
                                                 .clip(RoundedCornerShape(24.dp))
                                         ) {
-                                            if (page == pagerState.currentPage) {
+                                            if (page == pagerState.currentPage &&
+                                                !listState.isScrollInProgress &&
+                                                !pagerState.isScrollInProgress
+                                            ) {
                                                 KmpVideoPlayer(
                                                     videoUrl = item.videoUrl,
                                                     modifier = Modifier.fillMaxSize(),
@@ -633,7 +694,7 @@ fun MainScreen(
                                     contentDescription = "Previous",
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        navigateTo(pagerState.currentPage - 1)
+                                        navigation.moveBy(-1)
                                     },
                                     modifier = Modifier
                                         .align(Alignment.CenterStart)
@@ -648,7 +709,7 @@ fun MainScreen(
                                     contentDescription = "Next",
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        navigateTo(pagerState.currentPage + 1)
+                                        navigation.moveBy(1)
                                     },
                                     modifier = Modifier
                                         .align(Alignment.CenterEnd)
@@ -839,7 +900,7 @@ fun MainScreen(
                                 .fillMaxWidth()
                                 .height(110.dp)
                         ) {
-                            val itemSize = 80.dp
+                            val itemSize = 100.dp
                             val sidePadding = if (maxWidth > itemSize) {
                                 (maxWidth - itemSize) / 2
                             } else {
@@ -848,21 +909,65 @@ fun MainScreen(
 
                             LazyRow(
                                 state = listState,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .onPreviewKeyEvent { event ->
+                                        if (event.type != KeyEventType.KeyDown || !carouselReady) false
+                                        else when (event.key) {
+                                            Key.DirectionRight, Key.DirectionLeft -> {
+                                                val forward = (event.key == Key.DirectionRight) !=
+                                                    (layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl)
+                                                navigation.moveBy(if (forward) 1 else -1, animated = false)
+                                                true
+                                            }
+                                            Key.MoveHome -> { navigation.moveTo(0, animated = false); true }
+                                            Key.MoveEnd -> { navigation.moveTo(uiState.items.lastIndex, animated = false); true }
+                                            else -> false
+                                        }
+                                    }
+                                    .scrollable(
+                                        state = stripScrollState,
+                                        orientation = Orientation.Horizontal,
+                                        enabled = carouselReady && uiState.items.size > 1,
+                                        reverseDirection = ScrollableDefaults.reverseDirection(
+                                            layoutDirection, Orientation.Horizontal, false
+                                        ),
+                                        flingBehavior = stripFlingBehavior,
+                                    )
+                                    .semantics {
+                                        collectionInfo = CollectionInfo(1, uiState.items.size)
+                                        horizontalScrollAxisRange = ScrollAxisRange(
+                                            value = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
+                                            maxValue = { (pagerState.pageCount - 1).coerceAtLeast(0).toFloat() },
+                                            reverseScrolling = layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl,
+                                        )
+                                        scrollToIndex { index ->
+                                            if (index in uiState.items.indices && carouselReady) {
+                                                navigation.moveTo(index, animated = false)
+                                                true
+                                            } else false
+                                        }
+                                        scrollBy { x, _ ->
+                                            if (x != 0f && carouselReady) {
+                                                navigation.moveBy(if (x > 0) 1 else -1, animated = false)
+                                                true
+                                            } else false
+                                        }
+                                    },
+                                userScrollEnabled = false,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                                 contentPadding = PaddingValues(horizontal = sidePadding),
                                 verticalAlignment = Alignment.Bottom,
-                                flingBehavior = rememberSnapFlingBehavior(
-                                    lazyListState = listState,
-                                    snapPosition = SnapPosition.Center
-                                )
                             ) {
-                                itemsIndexed(uiState.items) { index, item ->
+                                itemsIndexed(uiState.items, key = { _, item -> item.id }) { index, item ->
                                     ScrubberItem(
                                         item = item,
                                         listState = listState,
                                         itemIndex = index,
-                                        baseSize = itemSize,
+                                        itemCount = uiState.items.size,
+                                        isSelected = pagerState.currentPage == index,
+                                        onFocus = { navigation.moveTo(index, animated = false) },
+                                        baseSize = 80.dp,
                                         extraSize = 20.dp,
                                         onClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -1095,11 +1200,14 @@ private fun ScrubberItem(
     item: GifItem,
     listState: androidx.compose.foundation.lazy.LazyListState,
     itemIndex: Int,
+    itemCount: Int,
+    isSelected: Boolean,
+    onFocus: () -> Unit,
     baseSize: androidx.compose.ui.unit.Dp,
     extraSize: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
-    val progress by remember(listState) {
+    val progress = remember(listState, itemIndex) {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
             val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }
@@ -1115,21 +1223,29 @@ private fun ScrubberItem(
         }
     }
 
-    val currentSize = baseSize + (extraSize * progress)
-    
-    // Border properties - scales from 0 to max, always present in layout
-    val borderAlpha = progress
-    val borderWidth = 3.dp * progress
-
+    // Keep the row geometry fixed; magnification only updates the render layer.
+    val maxSize = baseSize + extraSize
     Box(
         modifier = Modifier
-            .size(currentSize)
+            .size(maxSize)
+            .graphicsLayer {
+                val scale = (baseSize.value + extraSize.value * progress.value) / maxSize.value
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0.5f, 1f)
+            }
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .onFocusChanged { if (it.isFocused && !isSelected) onFocus() }
+            .selectable(selected = isSelected, role = Role.Tab, onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = item.title
+                stateDescription = "${itemIndex + 1} of $itemCount"
+                collectionItemInfo = CollectionItemInfo(0, 1, itemIndex, 1)
+            }
     ) {
         KmpAsyncImage(
             imageUrl = item.thumbnailUrl,
-            contentDescription = item.title,
+            contentDescription = null,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -1176,18 +1292,19 @@ private fun ScrubberItem(
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clearAndSetSemantics {},
                 textAlign = TextAlign.Center
             )
         }
 
-        // Border - always present in composition for performance, scales from 0
+        // Fade the border in its own layer without invalidating composition or layout.
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .graphicsLayer { alpha = progress.value }
                 .border(
-                    width = borderWidth,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha),
+                    width = 3.dp,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(12.dp)
                 )
         )

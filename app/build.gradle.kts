@@ -18,6 +18,7 @@ kotlin {
             }
         }
         minSdk = 24
+        withHostTestBuilder {}
 
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
@@ -39,6 +40,10 @@ kotlin {
     }
 
     sourceSets {
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
+        }
         val commonMain by getting {
             dependencies {
                 implementation(libs.compose.runtime)
@@ -59,6 +64,7 @@ kotlin {
                 implementation(libs.ktor.serialization.kotlinx.json)
 
                 implementation(libs.coil.compose)
+                implementation(libs.coil.network.ktor3)
 
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose.viewmodel)

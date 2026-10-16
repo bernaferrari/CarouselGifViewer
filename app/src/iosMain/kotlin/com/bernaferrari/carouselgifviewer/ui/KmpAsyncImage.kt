@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 
@@ -33,15 +34,19 @@ actual fun KmpAsyncImage(
     contentDescription: String?,
     modifier: Modifier
 ) {
-    var isLoading by remember { mutableStateOf(true) }
-    var isError by remember { mutableStateOf(false) }
+    val context = LocalPlatformContext.current
+    val request = remember(context, imageUrl) {
+        ImageRequest.Builder(context)
+            .data(imageUrl.toStillThumbnailUrl())
+            .crossfade(100)
+            .build()
+    }
+    var isLoading by remember(imageUrl) { mutableStateOf(true) }
+    var isError by remember(imageUrl) { mutableStateOf(false) }
     
     Box(modifier = modifier) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalPlatformContext.current)
-                .data(imageUrl)
-                .crossfade(300) // Smooth 300ms crossfade transition
-                .build(),
+            model = request,
             contentDescription = contentDescription,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
@@ -89,13 +94,16 @@ private fun ShimmerOverlay(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = shimmerColors,
-                    start = Offset(shimmerProgress * 800f - 200f, 0f),
-                    end = Offset(shimmerProgress * 800f + 200f, 200f)
+            .drawBehind {
+                val offset = shimmerProgress * size.width
+                drawRect(
+                    brush = Brush.linearGradient(
+                        colors = shimmerColors,
+                        start = Offset(offset - size.width, 0f),
+                        end = Offset(offset, size.height)
+                    )
                 )
-            )
+            }
     )
 }
 

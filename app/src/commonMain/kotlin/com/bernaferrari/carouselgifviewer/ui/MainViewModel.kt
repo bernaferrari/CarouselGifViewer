@@ -127,13 +127,14 @@ class MainViewModel(
                 }
         }
 
-        val currentItem = items.getOrNull(basicFilter.selectedIndex)
+        val safeSelectedIndex = basicFilter.selectedIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0))
+        val currentItem = items.getOrNull(safeSelectedIndex)
 
         MainUiState(
             items = items,
             filteredItems = filteredItems,
             filterQuery = basicFilter.query,
-            selectedIndex = basicFilter.selectedIndex.coerceIn(0, (items.size - 1).coerceAtLeast(0)),
+            selectedIndex = safeSelectedIndex,
             isLoading = basicFilter.isLoading,
             error = basicFilter.error,
             currentItem = currentItem,
@@ -164,28 +165,15 @@ class MainViewModel(
     )
 
     init {
-        viewModelScope.launch {
-            repository.items.collect {
-                _isLoading.value = false
-            }
-        }
-
-        // Restore last selected item
-        viewModelScope.launch {
-            val items = repository.items.first { it.isNotEmpty() }
-            val lastId = settingsRepository.settings.first().lastSelectedId
-            
-            if (lastId != null) {
-                val index = items.indexOfFirst { it.id == lastId }
-                if (index >= 0) {
-                    _selectedIndex.value = index
-                }
-            }
-        }
-
         // Save selected item with debounce
         @OptIn(FlowPreview::class)
         viewModelScope.launch {
+            // Finish restoring before either the UI or persistence can commit the default index.
+            val initialItems = repository.items.first()
+            val lastId = settingsRepository.settings.first().lastSelectedId
+            val restoredIndex = initialItems.indexOfFirst { it.id == lastId }
+            _selectedIndex.value = restoredIndex.coerceAtLeast(0)
+            _isLoading.value = false
             _selectedIndex
                 .debounce(500)
                 .collect { index ->
