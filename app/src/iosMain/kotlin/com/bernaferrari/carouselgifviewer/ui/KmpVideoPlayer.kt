@@ -38,6 +38,7 @@ import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.AVPlayerLayer
 import platform.AVFoundation.AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate
 import platform.AVFoundation.currentItem
+import platform.AVFoundation.currentTime
 import platform.AVFoundation.pause
 import platform.AVFoundation.play
 import platform.AVFoundation.muted
@@ -48,6 +49,7 @@ import platform.AVFoundation.seekToTime
 import platform.AVFoundation.timeControlStatus
 import platform.AVFoundation.AVLayerVideoGravityResizeAspectFill
 import platform.CoreMedia.CMTimeMakeWithSeconds
+import platform.CoreMedia.CMTimeGetSeconds
 import platform.Foundation.NSKeyValueObservingOptionNew
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSOperationQueue
@@ -62,17 +64,18 @@ import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
 @Composable
-actual fun KmpVideoPlayer(
+internal actual fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier,
     playbackSpeed: Float,
     posterUrl: String?,
     playbackEnabled: Boolean,
+    preferences: PlaybackPreferences,
 ) {
     var isBuffering by remember(videoUrl) { mutableStateOf(true) }
     var playbackFailed by remember(videoUrl) { mutableStateOf(false) }
     val currentSpeed by rememberUpdatedState(playbackSpeed)
-    val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled)
+    val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled && preferences.isPlayingRequested)
     var showLoading by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
@@ -89,7 +92,10 @@ actual fun KmpVideoPlayer(
     val player = remember(videoUrl) {
         val url = NSURL.URLWithString(videoUrl)!!
         val playerItem = AVPlayerItem(url)
-        AVPlayer(playerItem).apply { muted = true }
+        AVPlayer(playerItem).apply {
+            muted = preferences.isMuted
+            seekToTime(CMTimeMakeWithSeconds(preferences.positionMillis / 1000.0, 600))
+        }
     }
     
     val videoLayer = remember(player) { AVPlayerLayer.playerLayerWithPlayer(player) }
@@ -136,6 +142,8 @@ actual fun KmpVideoPlayer(
         }
 
         onDispose {
+            val seconds = CMTimeGetSeconds(player.currentTime())
+            if (seconds.isFinite()) preferences.positionMillis = (seconds * 1000).toLong().coerceAtLeast(0L)
             center.removeObserver(loopObserver)
             center.removeObserver(willResign)
             center.removeObserver(didBecome)
@@ -143,8 +151,8 @@ actual fun KmpVideoPlayer(
         }
     }
     
-    LaunchedEffect(player, playbackSpeed, playbackEnabled) {
-        if (playbackEnabled) {
+    LaunchedEffect(player, playbackSpeed, playbackEnabled, preferences.isPlayingRequested) {
+        if (playbackEnabled && preferences.isPlayingRequested) {
             player.play()
             player.rate = playbackSpeed
         } else {

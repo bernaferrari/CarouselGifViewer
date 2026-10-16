@@ -14,12 +14,13 @@ expect fun KmpAsyncImage(
 )
 
 @Composable
-expect fun KmpVideoPlayer(
+internal expect fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier = Modifier,
     playbackSpeed: Float = 1f,
     posterUrl: String? = null,
     playbackEnabled: Boolean = true,
+    preferences: PlaybackPreferences,
 )
 
 // Giphy provides the first frame separately; the strip never needs the full animation.

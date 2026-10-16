@@ -92,16 +92,17 @@ object VideoCacheManager {
 
 @OptIn(UnstableApi::class)
 @Composable
-actual fun KmpVideoPlayer(
+internal actual fun KmpVideoPlayer(
     videoUrl: String,
     modifier: Modifier,
     playbackSpeed: Float,
     posterUrl: String?,
     playbackEnabled: Boolean,
+    preferences: PlaybackPreferences,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    var requestedPlaying by rememberSaveable(videoUrl) { mutableStateOf(true) }
+    val requestedPlaying = preferences.isPlayingRequested
     val currentRequestedPlaying by rememberUpdatedState(requestedPlaying)
     val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled)
     var firstFrameRendered by remember(videoUrl) { mutableStateOf(false) }
@@ -109,7 +110,7 @@ actual fun KmpVideoPlayer(
     var isBuffering by remember(videoUrl) { mutableStateOf(true) }
     var showLoading by remember { mutableStateOf(false) }
     var controlsVisible by rememberSaveable(videoUrl) { mutableStateOf(true) }
-    var isMuted by rememberSaveable(videoUrl) { mutableStateOf(true) } // Start muted by default
+    val isMuted = preferences.isMuted
     var isPlaying by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
@@ -166,8 +167,9 @@ actual fun KmpVideoPlayer(
             .apply {
                 val mediaItem = MediaItem.fromUri(videoUrl)
                 setMediaItem(mediaItem)
+                seekTo(preferences.positionMillis)
                 prepare()
-                playWhenReady = playbackEnabled && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                playWhenReady = requestedPlaying && playbackEnabled && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
                 repeatMode = Player.REPEAT_MODE_ONE
                 volume = 0f // Start muted
                 
@@ -228,6 +230,7 @@ actual fun KmpVideoPlayer(
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            preferences.positionMillis = exoPlayer.currentPosition.coerceAtLeast(0L)
             exoPlayer.release()
         }
     }
@@ -252,6 +255,7 @@ actual fun KmpVideoPlayer(
                 .testTag("videoSurface")
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
+                    onClickLabel = if (controlsVisible) "Hide video controls" else "Show video controls",
                     indication = null
                 ) {
                     controlsVisible = !controlsVisible
@@ -321,8 +325,8 @@ actual fun KmpVideoPlayer(
                 // Play/Pause button with proper icon switching
                 IconButton(
                     onClick = {
-                        requestedPlaying = !requestedPlaying
-                        exoPlayer.playWhenReady = requestedPlaying && playbackEnabled
+                        preferences.isPlayingRequested = !preferences.isPlayingRequested
+                        exoPlayer.playWhenReady = preferences.isPlayingRequested && playbackEnabled
                     }
                 ) {
                     Icon(
@@ -334,7 +338,7 @@ actual fun KmpVideoPlayer(
                 
                 // Mute/Unmute button with proper icon switching
                 IconButton(
-                    onClick = { isMuted = !isMuted }
+                    onClick = { preferences.isMuted = !preferences.isMuted }
                 ) {
                     Icon(
                         if (isMuted) AppIcons.VolumeOff else AppIcons.VolumeUp,

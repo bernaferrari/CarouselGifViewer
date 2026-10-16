@@ -25,7 +25,14 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    // Instrumentation uses a separate install so test cleanup cannot touch the user's app/data.
+    testBuildType = "uiTest"
     buildTypes {
+        create("uiTest") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".uitest"
+            matchingFallbacks += "debug"
+        }
         getByName("release") {
             isMinifyEnabled = false
         }

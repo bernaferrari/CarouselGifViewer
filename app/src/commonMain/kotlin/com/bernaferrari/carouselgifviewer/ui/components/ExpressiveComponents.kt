@@ -1,7 +1,6 @@
 package com.bernaferrari.carouselgifviewer.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import kotlinx.coroutines.launch
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.carouselgifviewer.ui.theme.AppColors
@@ -93,99 +94,60 @@ fun GlassmorphicSurface(
     )
 }
 
-/**
- * Animated icon button with scale press effect
- */
+/** Stable 48dp hit target; press feedback affects only the icon, never the input surface. */
 @Composable
 fun AnimatedIconButton(
     icon: ImageVector,
-    contentDescription: String?,
+    contentDescription: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     tint: Color = MaterialTheme.colorScheme.onSurface,
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
     pressedBackgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
     shape: Shape = CircleShape,
     size: Dp = 48.dp,
-    nudgeOffsetX: Dp = 0.dp
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val density = androidx.compose.ui.platform.LocalDensity.current
-    
-    // Nudge animation state (for click impulse)
-    val nudgeX = remember { androidx.compose.animation.core.Animatable(0f) }
-    
-    // Hover offset (continuously present when hovered)
-    val hoverOffsetPx = with(density) { nudgeOffsetX.toPx() * 0.4f }
-    val animatedHoverOffset by animateFloatAsState(
-        targetValue = if (isHovered) hoverOffsetPx else 0f,
-        animationSpec = tween(200),
-        label = "hoverOffset"
-    )
-    
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.9f else if (isHovered) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "buttonScale"
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = tween(90),
+        label = "navigationPress",
     )
-    
-    val bgColor by animateColorAsState(
-        targetValue = if (isPressed) pressedBackgroundColor else if (isHovered) backgroundColor.copy(alpha = 1f) else backgroundColor,
-        animationSpec = tween(150),
-        label = "buttonBgColor"
+    val color by animateColorAsState(
+        targetValue = when {
+            isPressed -> pressedBackgroundColor
+            isHovered -> backgroundColor.copy(alpha = 1f)
+            else -> backgroundColor
+        },
+        animationSpec = tween(100),
+        label = "navigationBackground",
     )
-
     Box(
         modifier = modifier
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                // Combine hover offset (steady) + click nudge (impulse)
-                this.translationX = animatedHoverOffset + nudgeX.value
-            }
-            .shadow(
-                elevation = if (isPressed) 2.dp else if (isHovered) 8.dp else 6.dp,
-                shape = shape,
-                spotColor = AppColors.Purple40.copy(alpha = 0.4f)
-            )
+            .size(size.coerceAtLeast(48.dp))
+            .shadow(3.dp, shape)
             .clip(shape)
-            .background(bgColor)
+            .background(color)
             .clickable(
+                enabled = enabled,
+                role = Role.Button,
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = {
-                    scope.launch {
-                        // Launch nudge animation if offset is provided
-                        if (nudgeOffsetX != 0.dp) {
-                            launch {
-                                val targetPx = with(density) { nudgeOffsetX.toPx() }
-                                nudgeX.animateTo(
-                                    targetValue = targetPx,
-                                    animationSpec = tween(100)
-                                )
-                                nudgeX.animateTo(
-                                    targetValue = 0f,
-                                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                                )
-                            }
-                        }
-                        onClick()
-                    }
-                }
-            )
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = tint
+            tint = tint,
+            modifier = Modifier.size(24.dp).graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            },
         )
     }
 }

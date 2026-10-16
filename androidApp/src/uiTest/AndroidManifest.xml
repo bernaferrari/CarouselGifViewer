@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:allowBackup="false"
+        android:label="Carousel UI Tests"
+        tools:replace="android:allowBackup,android:label" />
+</manifest>

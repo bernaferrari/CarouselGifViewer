@@ -94,6 +94,9 @@ internal class CarouselNavigation(private val pager: PagerState, private val sco
     fun moveTo(index: Int, animated: Boolean = true) {
         if (pager.pageCount == 0) return
         val target = index.coerceIn(0, pager.pageCount - 1)
+        if (requestedPage == null && !pager.isScrollInProgress && pager.currentPage == target &&
+            abs(pager.currentPageOffsetFraction) < 0.0001f
+        ) return
         val request = ++generation
         job?.cancel()
         requestedPage = target

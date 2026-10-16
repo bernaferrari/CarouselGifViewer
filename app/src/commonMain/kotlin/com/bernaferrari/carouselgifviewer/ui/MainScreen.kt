@@ -119,6 +119,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -383,7 +384,7 @@ fun MainScreen(
                         }
                         Text(
                             text = highlightSearchText(item.title, drawerQuery),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.ContentOrLtr),
                             fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
                             color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
                             else MaterialTheme.colorScheme.onSurface,
@@ -407,6 +408,7 @@ fun MainScreen(
                         Text(
                             text = uiState.items.getOrNull(pagerState.currentPage)?.title ?: "",
                             modifier = Modifier.testTag("carouselTitle"),
+                            style = MaterialTheme.typography.titleLarge.copy(textDirection = TextDirection.ContentOrLtr),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             fontWeight = FontWeight.SemiBold
@@ -616,17 +618,19 @@ fun MainScreen(
                             }
                         }
 
+                        CarouselLayout(
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            media = {
                         // Main pager area
                         Box(
                             modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
+                                .fillMaxSize()
                         ) {
                             HorizontalPager(
                                 state = pagerState,
                                 key = { page -> uiState.items[page].id },
                                 userScrollEnabled = carouselReady,
-                                modifier = Modifier.fillMaxSize().testTag("carouselPager"),
+                                modifier = Modifier.fillMaxSize().padding(bottom = 64.dp).testTag("carouselPager"),
                                 contentPadding = PaddingValues(horizontal = 24.dp),
                                 pageSpacing = 4.dp
                             ) { page ->
@@ -638,7 +642,7 @@ fun MainScreen(
                                     }
                                 }
 
-                                Box(
+                                BoxWithConstraints(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .graphicsLayer {
@@ -652,9 +656,7 @@ fun MainScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .aspectRatio(1f),
+                                        modifier = Modifier.size(minOf(maxWidth, maxHeight)),
                                         shape = RoundedCornerShape(24.dp),
                                         elevation = CardDefaults.cardElevation(
                                             defaultElevation = if (isCentered) 12.dp else 4.dp
@@ -668,13 +670,16 @@ fun MainScreen(
                                                 .fillMaxSize()
                                                 .clip(RoundedCornerShape(24.dp))
                                         ) {
-                                            if (page == pagerState.settledPage && carouselReady) {
+                                            if (page == pagerState.settledPage && carouselReady &&
+                                                !pagerState.isScrollInProgress && navigation.requestedPage == null
+                                            ) {
                                                 KmpVideoPlayer(
                                                     videoUrl = item.videoUrl,
                                                     modifier = Modifier.fillMaxSize(),
                                                     playbackSpeed = uiState.playbackSpeed,
                                                     posterUrl = item.thumbnailUrl,
                                                     playbackEnabled = !pagerState.isScrollInProgress,
+                                                    preferences = viewModel.playbackPreferences(item.id),
                                                 )
                                             } else {
                                                 KmpAsyncImage(
@@ -693,30 +698,30 @@ fun MainScreen(
                                 AnimatedIconButton(
                                     icon = AppIcons.KeyboardArrowLeft,
                                     contentDescription = "Previous",
+                                    enabled = carouselReady,
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navigation.moveBy(-1)
                                     },
                                     modifier = Modifier
                                         .align(Alignment.CenterStart)
-                                        .padding(start = 12.dp),
+                                        .padding(start = 12.dp, bottom = 64.dp),
                                     backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                                    nudgeOffsetX = (-8).dp
                                 )
                             }
                             if (pagerState.currentPage < uiState.items.lastIndex) {
                                 AnimatedIconButton(
                                     icon = AppIcons.KeyboardArrowRight,
                                     contentDescription = "Next",
+                                    enabled = carouselReady,
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         navigation.moveBy(1)
                                     },
                                     modifier = Modifier
                                         .align(Alignment.CenterEnd)
-                                        .padding(end = 12.dp),
+                                        .padding(end = 12.dp, bottom = 64.dp),
                                     backgroundColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                                    nudgeOffsetX = 8.dp
                                 )
                             }
 
@@ -903,8 +908,8 @@ fun MainScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(4.dp))
-
+                            },
+                            strip = {
                         // Bottom scrubber
                         BoxWithConstraints(
                             modifier = Modifier
@@ -978,7 +983,11 @@ fun MainScreen(
                                         itemIndex = index,
                                         itemCount = uiState.items.size,
                                         isSelected = pagerState.currentPage == index,
-                                        onFocus = { navigation.moveTo(index, animated = false) },
+                                        onFocus = {
+                                            if (navigation.requestedPage == null) {
+                                                navigation.moveTo(index, animated = false)
+                                            }
+                                        },
                                         baseSize = 80.dp,
                                         extraSize = 20.dp,
                                         onClick = {
@@ -996,6 +1005,8 @@ fun MainScreen(
                                     .clearAndSetSemantics {}
                             )
                         }
+                            },
+                        )
                     }
                 }
                     }
@@ -1102,7 +1113,7 @@ fun MainScreen(
 
     // Adaptive layout based on screen width
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val isTablet = maxWidth >= 600.dp
+        val isTablet = maxWidth >= 840.dp && maxHeight >= 480.dp
 
         // Shader background layer
         ShaderBackground(
@@ -1300,7 +1311,7 @@ private fun ScrubberItem(
         ) {
             Text(
                 text = item.title,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(textDirection = TextDirection.ContentOrLtr),
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

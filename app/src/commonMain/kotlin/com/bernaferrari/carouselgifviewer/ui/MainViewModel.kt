@@ -66,6 +66,17 @@ class MainViewModel(
     private val downloadManager: DownloadManager
 ) : ViewModel() {
 
+    private var playbackItemId: String? = null
+    private var activePlaybackPreferences = PlaybackPreferences()
+
+    internal fun playbackPreferences(videoId: String): PlaybackPreferences {
+        if (playbackItemId != videoId) {
+            playbackItemId = videoId
+            activePlaybackPreferences = PlaybackPreferences()
+        }
+        return activePlaybackPreferences
+    }
+
     private val _filterQuery = MutableStateFlow("")
     private val _selectedIndex = MutableStateFlow(0)
     private val _isLoading = MutableStateFlow(true)
