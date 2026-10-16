@@ -144,7 +144,8 @@ fun MainScreen(
     onOpenBrowser: (String) -> Unit,
     onOpenSettings: () -> Unit,
     shaderEffectEnabled: Boolean = false,
-    shaderType: ShaderType = ShaderType.Zen
+    shaderType: ShaderType = ShaderType.Zen,
+    nativeTopBar: (@Composable (title: String, onOpenMenu: (() -> Unit)?) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val pagerState = rememberPagerState(
@@ -405,7 +406,12 @@ fun MainScreen(
     fun MainContent(showMenuButton: Boolean = true) {
         Scaffold(
             topBar = {
-                TopAppBar(
+                if (nativeTopBar != null) {
+                    nativeTopBar(
+                        uiState.items.getOrNull(pagerState.currentPage)?.title.orEmpty(),
+                        if (showMenuButton) ({ scope.launch { drawerState.open() }; Unit }) else null
+                    )
+                } else TopAppBar(
                     title = {
                         Text(
                             text = uiState.items.getOrNull(pagerState.currentPage)?.title ?: "",

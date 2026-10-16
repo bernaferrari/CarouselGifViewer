@@ -1,5 +1,9 @@
 package com.bernaferrari.carouselgifviewer.ui
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -60,6 +64,9 @@ import platform.QuartzCore.CALayer
 import platform.UIKit.UIApplicationDidBecomeActiveNotification
 import platform.UIKit.UIApplicationWillResignActiveNotification
 import platform.UIKit.UIView
+import platform.QuartzCore.CATransaction
+import platform.CoreGraphics.CGRectZero
+import kotlinx.cinterop.readValue
 import platform.darwin.NSObject
 
 @OptIn(ExperimentalForeignApi::class)
@@ -74,8 +81,10 @@ internal actual fun KmpVideoPlayer(
 ) {
     var isBuffering by remember(videoUrl) { mutableStateOf(true) }
     var playbackFailed by remember(videoUrl) { mutableStateOf(false) }
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val canPlay = playbackEnabled && preferences.isPlayingRequested && lifecycleState == Lifecycle.State.RESUMED
     val currentSpeed by rememberUpdatedState(playbackSpeed)
-    val currentPlaybackEnabled by rememberUpdatedState(playbackEnabled && preferences.isPlayingRequested)
+    val currentPlaybackEnabled by rememberUpdatedState(canPlay)
     var showLoading by remember { mutableStateOf(false) }
     
     // Only show loading after 250ms delay (skip for cached videos)
@@ -151,8 +160,8 @@ internal actual fun KmpVideoPlayer(
         }
     }
     
-    LaunchedEffect(player, playbackSpeed, playbackEnabled, preferences.isPlayingRequested) {
-        if (playbackEnabled && preferences.isPlayingRequested) {
+    LaunchedEffect(player, playbackSpeed, canPlay) {
+        if (canPlay) {
             player.play()
             player.rate = playbackSpeed
         } else {
@@ -174,10 +183,7 @@ internal actual fun KmpVideoPlayer(
         @Suppress("DEPRECATION")
         UIKitView(
             factory = {
-                val container = UIView()
-                videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-                container.layer.addSublayer(videoLayer)
-                container
+                VideoContainer(videoLayer)
             },
             update = { view ->
                 // Update layer frame when view bounds change
@@ -230,5 +236,23 @@ internal actual fun KmpVideoPlayer(
                 )
             }
         }
+    }
+}
+
+
+/** UIKit lays out interop views after Compose's update callback has run. */
+@OptIn(ExperimentalForeignApi::class)
+private class VideoContainer(private val videoLayer: AVPlayerLayer) : UIView(frame = CGRectZero.readValue()) {
+    init {
+        videoLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+        layer.addSublayer(videoLayer)
+    }
+
+    override fun layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        videoLayer.frame = bounds
+        CATransaction.commit()
     }
 }

@@ -28,6 +28,15 @@ android {
     // Instrumentation uses a separate install so test cleanup cannot touch the user's app/data.
     testBuildType = "uiTest"
     buildTypes {
+        // Optimized, developer-signed install for testing on the normal app ID.
+        create("localRelease") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            matchingFallbacks += "release"
+        }
         create("benchmark") {
             initWith(getByName("release"))
             applicationIdSuffix = ".benchmark"

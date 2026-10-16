@@ -1,0 +1,68 @@
+name: Carousel
+options:
+  bundleIdPrefix: com.bernaferrari.carouselgifviewer
+  deploymentTarget:
+    iOS: '18.5'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    DEVELOPMENT_TEAM: ''
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+  configs:
+    Debug:
+      KOTLIN_BUILD_TYPE: debug
+    Release:
+      KOTLIN_BUILD_TYPE: release
+targets:
+  Carousel:
+    type: application
+    platform: iOS
+    sources: [Carousel]
+    info:
+      path: Carousel/Info.plist
+      properties:
+        CFBundleDisplayName: Carousel
+        CADisableMinimumFrameDurationOnPhone: true
+        UILaunchScreen: {}
+        UIApplicationSupportsIndirectInputEvents: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bernaferrari.carouselgifviewer.ios
+        'FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*]': $(inherited) $(SRCROOT)/../app/build/bin/iosSimulatorArm64/$(KOTLIN_BUILD_TYPE)Framework
+        'FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]': $(inherited) $(SRCROOT)/../app/build/bin/iosArm64/$(KOTLIN_BUILD_TYPE)Framework
+        OTHER_LDFLAGS: $(inherited) -framework ComposeApp
+    preBuildScripts:
+      - name: Build Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          set -eu
+          cd "$SRCROOT/.."
+          if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
+            kotlin_target=IosSimulatorArm64
+          else
+            kotlin_target=IosArm64
+          fi
+          ./gradlew ":app:link${CONFIGURATION}Framework${kotlin_target}" --console=plain
+  CarouselUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [CarouselUITests]
+    dependencies:
+      - target: Carousel
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Carousel:
+    build:
+      targets:
+        Carousel: all
+    test:
+      targets: [CarouselUITests]

@@ -88,7 +88,8 @@ fun SettingsScreen(
     onOpenUrl: (String) -> Unit,
     currentCacheSizeMb: Float = 45f,
     downloadedCount: Int = 0,
-    downloadedSizeMb: Float = 0f
+    downloadedSizeMb: Float = 0f,
+    showTopBar: Boolean = true
 ) {
     val settings by viewModel.settings.collectAsState()
     val selectedTheme = settings.themeMode
@@ -99,7 +100,7 @@ fun SettingsScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
+            if (showTopBar) TopAppBar(
                 title = { 
                     Text(
                         "Settings",
