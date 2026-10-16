@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -82,6 +83,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.bernaferrari.carouselgifviewer.ui.icons.AppIcons
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
@@ -132,7 +134,6 @@ import com.bernaferrari.carouselgifviewer.ui.components.ShaderBackground
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.abs
-import kotlin.math.roundToInt
 import kotlin.time.TimeSource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -208,10 +209,11 @@ fun MainScreen(
     // The strip is a projection of the pager. It has no independent gesture or fling to fight.
     LaunchedEffect(pagerState, listState, itemStepPx) {
         snapshotFlow {
-            if (carouselReady) pagerState.currentPage to pagerState.currentPageOffsetFraction else null
+            if (carouselReady) pagerState.currentPage else null
         }.collectLatest { position ->
             if (position != null && pagerState.pageCount > 0) {
-                listState.scrollToItem(position.first, (position.second * itemStepPx).roundToInt())
+                listState.scrollToItem(position)
+
             }
         }
     }
@@ -915,10 +917,13 @@ fun MainScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(110.dp)
+                                .clipToBounds()
                         ) {
                             val itemSize = 100.dp
-                            val sidePadding = if (maxWidth > itemSize) {
-                                (maxWidth - itemSize) / 2
+                            // Render one extra slot at each edge so fractional translation never reveals a gap.
+                            val renderWidth = maxWidth + 212.dp
+                            val sidePadding = if (renderWidth > itemSize) {
+                                (renderWidth - itemSize) / 2
                             } else {
                                 0.dp
                             }
@@ -927,6 +932,7 @@ fun MainScreen(
                                 state = listState,
                                 modifier = Modifier
                                     .fillMaxSize()
+                                    .requiredWidth(renderWidth)
                                     .testTag("carouselScrubber")
                                     .onPreviewKeyEvent { event ->
                                         if (event.type != KeyEventType.KeyDown || !carouselReady) false
@@ -970,6 +976,10 @@ fun MainScreen(
                                                 true
                                             } else false
                                         }
+                                    }
+                                    .graphicsLayer {
+                                        val direction = if (layoutDirection == androidx.compose.ui.unit.LayoutDirection.Rtl) 1f else -1f
+                                        translationX = direction * pagerState.currentPageOffsetFraction * itemStepPx
                                     },
                                 userScrollEnabled = false,
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -979,7 +989,7 @@ fun MainScreen(
                                 itemsIndexed(uiState.items, key = { _, item -> item.id }) { index, item ->
                                     ScrubberItem(
                                         item = item,
-                                        listState = listState,
+                                        pagerState = pagerState,
                                         itemIndex = index,
                                         itemCount = uiState.items.size,
                                         isSelected = pagerState.currentPage == index,
@@ -1228,7 +1238,7 @@ private fun formatBibleReference(reference: String): String {
 @Composable
 private fun ScrubberItem(
     item: GifItem,
-    listState: androidx.compose.foundation.lazy.LazyListState,
+    pagerState: androidx.compose.foundation.pager.PagerState,
     itemIndex: Int,
     itemCount: Int,
     isSelected: Boolean,
@@ -1237,19 +1247,10 @@ private fun ScrubberItem(
     extraSize: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
-    val progress = remember(listState, itemIndex) {
+    val progress = remember(pagerState, itemIndex) {
         derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }
-            if (itemInfo == null) {
-                0f
-            } else {
-                val viewportCenter = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2f
-                val itemCenter = itemInfo.offset + itemInfo.size / 2f
-                val distance = abs(itemCenter - viewportCenter)
-                val maxDistance = itemInfo.size * 1.5f
-                (1f - (distance / maxDistance).coerceIn(0f, 1f))
-            }
+            val distance = abs(itemIndex - (pagerState.currentPage + pagerState.currentPageOffsetFraction))
+            1f - (distance / 1.5f).coerceIn(0f, 1f)
         }
     }
 

@@ -196,7 +196,7 @@ internal actual fun KmpVideoPlayer(
                 })
             }
     }
-    
+
     LaunchedEffect(exoPlayer, playbackEnabled, requestedPlaying) {
         exoPlayer.playWhenReady = playbackEnabled && requestedPlaying &&
             lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
@@ -231,7 +231,7 @@ internal actual fun KmpVideoPlayer(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             preferences.positionMillis = exoPlayer.currentPosition.coerceAtLeast(0L)
-            exoPlayer.release()
+                exoPlayer.release()
         }
     }
 

@@ -27,6 +27,8 @@ class CarouselInteractionTest {
         val node = selectedThumbnail().fetchSemanticsNodes().single()
         val title = node.config[SemanticsProperties.ContentDescription].single()
         compose.onNodeWithTag("carouselTitle").assertTextEquals(title)
+        val center = compose.onNodeWithTag("carouselScrubber").fetchSemanticsNode().boundsInRoot.center.x
+        org.junit.Assert.assertEquals("Selected thumbnail must be centered", center, node.boundsInRoot.center.x, 1f)
     }
 
     @Test fun gesturesEndpointsRapidTapsKeyboardAndRecreationKeepOneConsistentSelection() {
