@@ -494,9 +494,47 @@ fun MainScreen(
                     // Content
                     else -> {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Filter chip row
+                        // Category filter chips row
+                        val categories = uiState.availableCategories
+                        if (categories.size > 2) { // Only show if there are actual categories (beyond All & Favorites)
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(categories) { category ->
+                                    FilterChip(
+                                        selected = uiState.activeCategoryFilter.id == category.id,
+                                        onClick = { viewModel.setCategoryFilter(category) },
+                                        label = { Text(category.displayName) },
+                                        leadingIcon = {
+                                            when {
+                                                category.id == "all" -> Icon(
+                                                    Icons.Default.Search,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                category.id == "favorites" -> Icon(
+                                                    Icons.Default.Favorite,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
+                        // Legacy filter chip row (for favorites compatibility)
                         AnimatedVisibility(
-                            visible = uiState.activeFilter != FilterCategory.All,
+                            visible = uiState.activeFilter != FilterCategory.All && categories.size <= 2,
                             enter = slideInVertically { -it } + fadeIn(),
                             exit = slideOutVertically { -it } + fadeOut()
                         ) {

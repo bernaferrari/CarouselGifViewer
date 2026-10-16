@@ -12,5 +12,6 @@ data class GifItem(
     val description: String? = null,
     val verseReference: String? = null,
     val verseText: String? = null,
+    val category: String? = null,
     val isFavorite: Boolean = false
 )
